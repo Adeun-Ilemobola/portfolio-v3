@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator prismabox {
+  provider                    = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName   = "t"
+  inputModel                  = true
+  output                      = "../generated/prismabox"
+}
+enum FileKindSchema {
+  image
+  video
+  audio
+  document
+  other
+}
+
+model file {
+  id String @id @default(uuid())
+  name String
+  kind FileKindSchema
+  mimeType String
+  size Int
+
+  remoteUrl String
+
+  alt String?
+  caption String?
+
+  projectId String
+  createdAt String
+  updatedAt String
+}
