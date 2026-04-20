@@ -1,34 +1,225 @@
 import { Elysia, t } from "elysia";
 import { PrismaClient } from "@/generated/prisma/client";
-import { PutObjectCommand , DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client } from "@/lib/r2";
 import { ProjectStoredSchema } from "@/lib/Zod/project";
 import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-helpers";
+import { prisma } from "@/lib/server/prisma";
 
 const projectRouter = new Elysia({ prefix: "/project" })
-    .get("/:id", async ({ params }) => {
+    .get("/:id", async ({ params, status }) => {
+        const getProject = await prisma.project.findUnique({
+            where: { id: params.id },
+            include: {
+                files: true,
+            },
+        });
+
+        if (!getProject) {
+            return status(404, {
+                success: false,
+                message: "Project not found",
+                response: null,
+            });
+        }
+
+        return {
+            success: true,
+            message: "Project retrieved successfully",
+            response: getProject,
+        };
 
     })
     .get("/ShowCase", async () => {
+        const projects = await prisma.project.findMany({
+            select: {
+                id: true,
+                title: true,
+            }
+        });
+
+        return {
+            success: true,
+            message: "Projects retrieved successfully",
+            response: projects,
+        };
 
     })
-    .post("/create", async ({ body }) => {
-        const { id, ...project } = body;
+    .post("/create", async ({ body, status }) => {
+        const { id, createdAt, updatedAt, files, ...project } = body;
+        try {
+            const newProject = await prisma.project.create({
+                data: {
+                    title: project.title,
+                    description: project.description,
+                    tags: project.tags,
+                    url: project.url,
+                    githubUrl: project.githubUrl,
+
+                },
+            });
+            await prisma.file.createMany({
+                data: files?.map((file) => ({
+                    id: file.id,
+                    name: file.name,
+                    kind: file.kind,
+                    mimeType: file.mimeType,
+                    size: file.size,
+                    projectId: newProject.id,
+                    remoteUrl: file.remoteUrl,
+                    cloudKey: file.cloudKey,
+                    createdAt: file.createdAt,
+                    updatedAt: file.updatedAt,
+                })) || [],
+            });
+            return {
+                success: true,
+                message: "Project created successfully",
+                response: newProject,
+            };
+
+        } catch (error) {
+            console.error("Create project failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error creating project.",
+                response: null,
+            });
 
 
+        }
     },
         {
             body: ProjectStoredSchema
         }
     )
-    .put("/update/:id", async ({ params, body }) => {
+    .put("/update/:id", async ({ params, body, status }) => {
+        const { createdAt, updatedAt, files, ...project } = body;
+        try {
+            const updatedProject = await prisma.project.update({
+                where: { id: params.id },
+                data: {
+                    title: project.title,
+                    description: project.description,
+                    tags: project.tags,
+                    url: project.url,
+                    githubUrl: project.githubUrl,
+                    updatedAt: new Date(),
+                },
+            });
 
+            const existingFiles = await prisma.file.findMany({
+                where: { projectId: params.id },
+            });
+
+            const getnewFiles = files?.filter((file) => file.id.startsWith("local-")) || [];
+
+            const deleteFileIds = existingFiles
+                .filter((file) => !files?.some((f) => f.id === file.id))
+                .map((file) => file);
+
+            if (deleteFileIds.length > 0) {
+                deleteFileIds.forEach(async (file) => {
+                    try {
+                        await getR2Client().send(
+                            new DeleteObjectCommand({
+                                Bucket: process.env.R2_BUCKET_NAME!,
+                                Key: file.cloudKey!,
+                            })
+                        );
+                        await prisma.file.delete({
+                            where: { id: file.id },
+                        });
+                    } catch (error) {
+                        console.error(`Failed to delete file ${file.id} from R2:`, error);
+                    }
+
+                });
+            }
+
+
+            await prisma.file.createMany({
+                data: getnewFiles.map((file) => ({
+                    id: file.id,
+                    name: file.name,
+                    kind: file.kind,
+                    mimeType: file.mimeType,
+                    size: file.size,
+                    projectId: params.id,
+                    remoteUrl: file.remoteUrl,
+                    cloudKey: file.cloudKey,
+
+                })),
+            });
+
+            return {
+                success: true,
+                message: "Project updated successfully",
+                response: updatedProject,
+            };
+        } catch (error) {
+            console.error("Update project failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error updating project.",
+                response: null,
+            });
+        }
     },
         {
             body: ProjectStoredSchema
         })
-    .delete("/delete/:id", async ({ params }) => {
+    .delete("/delete/:id", async ({ params, status }) => {
+        try {
+            const project = await prisma.project.findUnique({
+                where: { id: params.id },
+                include: { files: true },
+            });
+
+            if (!project) {
+                return status(404, {
+                    success: false,
+                    message: "Project not found",
+                });
+            }
+
+            await Promise.all(
+                project.files.map(async (file) => {
+                    try {
+                        await getR2Client().send(
+                            new DeleteObjectCommand({
+                                Bucket: process.env.R2_BUCKET_NAME!,
+                                Key: file.cloudKey!,
+                            })
+                        );
+                        await prisma.file.delete({
+                            where: { id: file.id },
+                        });
+                    } catch (error) {
+                        console.error(`Failed to delete file ${file.id} from R2:`, error);
+                    }
+                })
+            );
+
+            await prisma.project.delete({
+                where: { id: params.id },
+            });
+
+            return {
+                success: true,
+                message: "Project deleted successfully",
+            };
+        } catch (error) {
+            console.error("Delete project failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error deleting project.",
+            });
+        }
 
     });
 

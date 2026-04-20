@@ -36,8 +36,8 @@ export const LocalFileSchema = z.object({
     progress: z.number().min(0).max(100).optional(),
     error: z.string().optional(),
 
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
 });
 
 
@@ -48,22 +48,22 @@ export type LocalFile = z.infer<typeof LocalFileSchema>;
 
 
 export const StoredFileSchema = z.object({
-    id: z.string(),
+    id: z.string().default(" "),
     name: z.string().min(1),
     kind: FileKindSchema,
     mimeType: z.string().min(1),
     size: z.number().nonnegative(),
 
     remoteUrl: z.string().url(),
-    cloudKey: z.string().optional(),
+    cloudKey: z.string(),
 
     alt: z.string().optional(),
     caption: z.string().optional(),
 
     projectId: z.string(),
 
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
 });
 
 export type StoredFile = z.infer<typeof StoredFileSchema>;
@@ -113,10 +113,10 @@ export function getFileKind(file: File): FileKind {
 }
 
 export function createLocalPortfolioFile(file: File): LocalFile {
-    const now = new Date().toISOString();
+    const now = new Date();
 
     return LocalFileSchema.parse({
-        id: crypto.randomUUID(),
+        id:"local-" + crypto.randomUUID(),
         name: file.name,
         kind: getFileKind(file),
         mimeType: file.type || "application/octet-stream",

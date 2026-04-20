@@ -19,6 +19,7 @@ generator prismabox {
   inputModel                  = true
   output                      = "../generated/prismabox"
 }
+
 enum FileKindSchema {
   image
   video
@@ -28,18 +29,49 @@ enum FileKindSchema {
 }
 
 model file {
-  id String @id @default(uuid())
-  name String
-  kind FileKindSchema
+  id       String         @id @default(uuid())
+  name     String
+  kind     FileKindSchema
   mimeType String
-  size Int
+  size     Int
 
   remoteUrl String
+  cloudKey  String
 
-  alt String?
+  alt     String?
   caption String?
 
   projectId String
-  createdAt String
-  updatedAt String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   project  @relation(fields: [projectId], references: [id])
+}
+
+model project {
+  id          String  @id @default(uuid())
+  title       String
+  description String
+  url         String?
+  githubUrl   String?
+
+  files file[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model authSessionSchema {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expire    Int
+  createdAt DateTime @default(now())
+}
+
+model skill {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
