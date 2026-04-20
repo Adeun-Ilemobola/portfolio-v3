@@ -64,6 +64,7 @@ model authSessionSchema {
   id        String   @id @default(uuid())
   token     String   @unique
   expire    Int
+  loginCode String
   createdAt DateTime @default(now())
 }
 

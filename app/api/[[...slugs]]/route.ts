@@ -223,7 +223,123 @@ const projectRouter = new Elysia({ prefix: "/project" })
 
     });
 
+const  SessionRouter = new Elysia({ prefix: "/auth" })
+.get("/session", async ({ status }) => {
+    try {
+        const getSession = await prisma.authSessionSchema.findFirst({
+            orderBy: { createdAt: "desc" },
+        });
+
+        if (!getSession) {
+            return status(404, {
+                success: false,
+                message: "No active session found",
+                response: null,
+            });
+        }
+        return {
+            success: true,
+            message: "Session is valid",
+            response: {
+                token: getSession.token,
+                expire: getSession.expire,
+            },
+        };
+    } catch (error) {
+        console.error("Session check failed:", error);
+        return status(401, {
+            success: false,
+            message:
+                error instanceof Error ? error.message : "Session is invalid.",
+            response: null,
+        });
+    }
+})
+.post("/session/Request", async ({ status }) => {
+    try {
+        
+        const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await prisma.authSessionSchema.create({
+            data: {
+                token: crypto.randomUUID(),
+                expire: Date.now() + 3600*24 * 1000, // 1 day in milliseconds
+                isValid: true,
+                loginCode,
+            },
+        });
+        // send the login code to the user via email or other means here
+
+        return {
+            success: true,
+            response:"Login code sent successfully",
+        };
+    } catch (error) {
+        console.error("Auth request failed:", error);
+        return status(500, {
+            success: false,
+            message:
+                error instanceof Error ? error.message : "Error creating session.",
+            response: null,
+        });
+    }
+}
+)
+.post("/session/Validate", async ({ body, status }) => {
+    const { loginCode } = body;
+    try {
+        const session = await prisma.authSessionSchema.findFirst({
+            where: { loginCode },
+            orderBy: { createdAt: "desc" },
+        });
+
+        if (!session) {
+            return status(404, {
+                success: false,
+                message: "Invalid login code",
+                response: null,
+            });
+        }
+
+        if (session.expire < Date.now()) {
+            return status(401, {
+                success: false,
+                message: "Login code has expired",
+                response: null,
+            });
+        }
+
+        await prisma.authSessionSchema.update({
+            where: { id: session.id },
+            data: { isValid: true },
+        });
+
+        return {
+            success: true,
+            message: "Session validated successfully",
+            response: {
+                token: session.token,
+                expire: session.expire,
+            },
+        };
+    } catch (error) {
+        console.error("Session validation failed:", error);
+        return status(500, {
+            success: false,
+            message:
+                error instanceof Error ? error.message : "Error validating session.",
+            response: null,
+        });
+    }
+},
+{
+    body: t.Object({
+        loginCode: t.String(),
+    }),
+}
+);
+
 export const app = new Elysia({ prefix: "/api" })
+    .use(SessionRouter)
     .use(projectRouter)
     .get("/", () => "Hello from Elysia")
     .get("/status", () => ({

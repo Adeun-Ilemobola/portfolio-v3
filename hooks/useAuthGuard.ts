@@ -1,13 +1,22 @@
 "use client";
 import { useAuthUiStore } from '@/lib/Zustand/auth';
-import React, { useEffect } from 'react'
-
-export default function useAuthGuard() {
-  const { isAuthenticated, checkSession } = useAuthUiStore();
+import React, { Dispatch, useEffect } from 'react'
+type Props = {
+  ShowAuthPopup: Dispatch<React.SetStateAction<boolean>>
+}
+export default function useAuthGuard({ ShowAuthPopup }: Props) {
+  const { isAuthenticated, checkSession , } = useAuthUiStore();
 
   useEffect(() => {
-    checkSession();
+    const  verifyAuthentication = async () => {
+      const authenticated = await checkSession();
+      if (!authenticated) {
+        ShowAuthPopup(true);
+      }
+    };
+
+    verifyAuthentication();
   }, [checkSession]);
 
- 
+  return isAuthenticated;
 }
