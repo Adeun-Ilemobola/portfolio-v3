@@ -27,6 +27,7 @@ export const LocalFileSchema = z.object({
     localFile: z.instanceof(File).optional(),
     previewUrl: z.string().optional(), // blob: or base64 or remote preview
     remoteUrl: z.string().url().optional(),
+    cloudKey: z.string().optional(),
 
     alt: z.string().optional(),
     caption: z.string().optional(),
@@ -54,6 +55,7 @@ export const StoredFileSchema = z.object({
     size: z.number().nonnegative(),
 
     remoteUrl: z.string().url(),
+    cloudKey: z.string().optional(),
 
     alt: z.string().optional(),
     caption: z.string().optional(),
@@ -76,11 +78,13 @@ export function localToStoredFile(localFile: LocalFile , projectId: string): Sto
     }).extend({
         remoteUrl: z.string().url(),
         projectId: z.string(),
+        cloudKey: z.string().optional(),
     });
     return StoredFileSchema.parse({
         ...localFile,
         remoteUrl: localFile.remoteUrl || "",
         projectId: projectId,
+        cloudKey: localFile.cloudKey,
     });
 }
 
@@ -132,13 +136,3 @@ export function createLocalPortfolioFiles(
 }
 
 
-export async function uploadSingleFile(file: File): Promise<string> {
-    // Simulate an upload delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // In a real implementation, you would upload the file to a server or cloud storage here
-    // and return the URL of the uploaded file.
-
-    // For this example, we'll just return a placeholder URL.
-    return `https://example.com/uploads/${encodeURIComponent(file.name)}`;
-}

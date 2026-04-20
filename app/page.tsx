@@ -1,5 +1,4 @@
-
-import { serverApi } from "@/lib/server/eden";
+"use client"
 
 import ImageForm from "@/components/ImageForm"
 import ProjectListing from "@/components/ProjectListing"
@@ -7,19 +6,17 @@ import StarfieldBackground from "@/components/Starfield"
 import Tagform from "@/components/Tagform"
 import { Button } from "@/components/ui/button"
 import { LocalFile } from "@/lib/Zod/file"
-// import { useState } from "react"
+ import { useState , useEffect } from "react"
 
-export default async function Page() {
-  // const [images, setImages] = useState<LocalFile[]>([]);
-  // const [tags, setTags] = useState<string[]>([]);
+export default function Page() {
+   const [images, setImages] = useState<LocalFile[]>([]);
+   const [tags, setTags] = useState<string[]>([]);
 
-  const hello = await serverApi.get();
-  const status = await serverApi.status.get();
-  const profile = await serverApi.profile.get();
-  const projects = await serverApi.projects.get();
-  const echoed = await serverApi.echo.post({
-    name: "))))",
-  });
+    useEffect(() => {
+        console.log("Current images:", images);
+    }, [images]);
+
+ 
 
 
   return (
@@ -30,14 +27,8 @@ export default async function Page() {
 
         <h1 className="text-2xl font-semibold">Elysia Test</h1>
 
-        <div className="mt-4 space-y-2">
-          <p>GET result: {JSON.stringify(hello.data)}</p>
-          <p>Status: {JSON.stringify(status.data)}</p>
-          <p>Profile: {JSON.stringify(profile.data)}</p>
-          <p>Projects: {JSON.stringify(projects.data)}</p>
-          <p>POST result: {JSON.stringify(echoed.data)}</p>
-        </div>
-        {/* <ImageForm 
+        
+        <ImageForm 
           images={images} 
           onDelete={(id) => {
             setImages(images.filter((img) => img.id !== id));
@@ -46,9 +37,15 @@ export default async function Page() {
             let newImages = new Set([...files, ...images]);
             setImages(Array.from(newImages));
           }} 
-          upDateImages={(image) => {
-            setImages(images.map((img) => img.id === image.id ? image : img));
-          }} /> */}
+          changeImageStatus={(id, status ,remoteUrl ,cloudKey) => {
+            setImages((prev) =>
+              prev.map((img) =>
+                img.id === id ? { ...img, uploadStatus: status, remoteUrl, cloudKey } : img
+              )
+            );
+          }} 
+        />
+         
 
 
 

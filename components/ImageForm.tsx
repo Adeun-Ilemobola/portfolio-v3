@@ -7,22 +7,22 @@ import { ImagePlus, UploadCloud, X } from "lucide-react";
 import {
   createLocalPortfolioFiles,
   LocalFile,
-  uploadSingleFile,
   UploadStatus,
 } from "@/lib/Zod/file";
+import { deleteSingleFile, uploadSingleFile } from "@/lib/r2-helpers";
 
 type Props = {
   onDelete: (id: string) => void;
   onSubmit: (images: LocalFile[]) => void;
   images: LocalFile[];
-  upDateImages: (image: LocalFile) => void;
+  changeImageStatus: (id: string, status: UploadStatus , remoteUrl?: string , cloudKey?: string ) => void;
 };
 
 export default function ImageForm({
   onDelete,
   onSubmit,
   images,
-  upDateImages,
+  changeImageStatus,
 }: Props) {
   const [mode, setMode] = useState<"view" | "hover">("view");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,32 +41,39 @@ export default function ImageForm({
 
       if (noDuplicates.length > 0) {
         onSubmit(noDuplicates);
+        uploadFiles(noDuplicates);
       }
 
       setMode("view");
     }
   }
 
-  function updateFile(id: string, data: Partial<LocalFile>) {
-    const image = images.find((img) => img.id === id);
-    if (image) {
-      const updatedImage = { ...image, ...data };
-      upDateImages(updatedImage);
+  async function Del(id: string) {
+    const img = images.find((i) => i.id === id);
+    if (!img) return;
+
+    if (img.uploadStatus === "uploaded" && img.cloudKey) {
+      const { success } = await deleteSingleFile(img.cloudKey);
+      if (!success) {
+        console.error("Failed to delete file from cloud storage");
+      }
     }
+
+    onDelete(id);
+    
   }
 
+ 
   async function uploadFiles(files: LocalFile[]) {
-    for (const f of files) {
-      updateFile(f.id, { uploadStatus: "uploading" });
+    const nuUpoadFiles = files.filter((f) => f.uploadStatus === "idle");
+    for (const f of nuUpoadFiles) {
+      changeImageStatus(f.id, "uploading");
       try {
-        const url = await uploadSingleFile(f.localFile!);
+        const {url , key} = await uploadSingleFile(f.localFile! , f.id);
 
-        updateFile(f.id, {
-          remoteUrl: url,
-          uploadStatus: "uploaded",
-        });
+        changeImageStatus(f.id, "uploaded", url, key);
       } catch {
-        updateFile(f.id, { uploadStatus: "failed" });
+        changeImageStatus(f.id, "failed");
       }
     }
   }
@@ -146,7 +153,7 @@ export default function ImageForm({
             onClick={(e) => e.stopPropagation()}
           >
             {images.map((image) => (
-              <ImageCard key={image.id} image={image} onDelete={onDelete} />
+              <ImageCard key={image.id} image={image} onDelete={Del} />
             ))}
           </div>
         ) : (
@@ -201,6 +208,7 @@ export default function ImageForm({
 
             if (noDuplicates.length > 0) {
               onSubmit(noDuplicates);
+              uploadFiles(noDuplicates);
             }
           }
         }}
@@ -212,7 +220,7 @@ export default function ImageForm({
 function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
   if (uploadStatus === "uploading") {
     return (
-      <Badge className="absolute bottom-2 right-2 border border-white/10 bg-slate-900/80 text-white">
+      <Badge className="absolute z-40 bottom-8 right-1 border border-white/10 bg-slate-900/80 text-white">
         Uploading...
       </Badge>
     );
@@ -220,7 +228,7 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
 
   if (uploadStatus === "uploaded") {
     return (
-      <Badge className="absolute bottom-2 right-2 border border-cyan-300/20 bg-cyan-300/15 text-cyan-100">
+      <Badge className="absolute z-40 bottom-8 right-1 border border-cyan-300/20 bg-cyan-300/15 text-cyan-100">
         Uploaded
       </Badge>
     );
@@ -230,14 +238,19 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
     return (
       <Badge
         variant="destructive"
-        className="absolute bottom-2 right-2 bg-rose-500/90"
+        className="absolute z-40 bottom-48 right-2 bg-rose-500/90"
       >
         Failed
       </Badge>
     );
   }
 
-  return null;
+  return (
+    <Badge className="absolute z-40 bottom-8 right-2 border border-white/10 bg-slate-900/80 text-white">
+      Idle
+    </Badge>
+  ) 
+  ;
 }
 
 function ImageCard({
