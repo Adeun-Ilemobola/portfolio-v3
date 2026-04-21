@@ -7,6 +7,7 @@ import { ProjectStoredSchema } from "@/lib/Zod/project";
 import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-helpers";
 import { prisma } from "@/lib/server/prisma";
 import { addDays , isAfter } from "date-fns";
+import { emailSwitcher } from "@/lib/reSend";
 
 const projectRouter = new Elysia({ prefix: "/project" })
     .get("/:id", async ({ params, status }) => {
@@ -261,7 +262,7 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
         
         const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expireAt = addDays(new Date(), 1);
-        await prisma.authSessionSchema.create({
+        const session = await prisma.authSessionSchema.create({
             data: {
                 token: crypto.randomUUID(),
                 expire: expireAt, // 1 day in milliseconds
@@ -269,6 +270,17 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
             },
         });
         // send the login code to the user via email or other means here
+        const emailSent = await emailSwitcher("sendCode", { code: loginCode });
+        if (!emailSent) {
+            await prisma.authSessionSchema.delete({
+                where: { id: session.id },
+            });
+            return status(500, {
+                success: false,
+                message: "Failed to send login code email.",
+                response: null,
+            });
+        }
 
         return {
             success: true,
