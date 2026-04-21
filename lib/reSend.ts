@@ -174,7 +174,7 @@ type EmailMap = {
  const sendEmail = async (to: string, subject: string, html: string) => {
   try {
     const data = await resend.emails.send({
-      from: "Admin <onboarding@resend.dev>"!,
+      from: "Admin <no-reply@send.adeunilemobola.dev>"!,
       to,
       subject,
       html,
