@@ -78,13 +78,13 @@ export function localToStoredFile(localFile: LocalFile , projectId: string): Sto
     }).extend({
         remoteUrl: z.string().url(),
         projectId: z.string(),
-        cloudKey: z.string().optional(),
+        cloudKey: z.string(),
     });
     return StoredFileSchema.parse({
         ...localFile,
         remoteUrl: localFile.remoteUrl || "",
         projectId: projectId,
-        cloudKey: localFile.cloudKey,
+        cloudKey: localFile.cloudKey ,
     });
 }
 
