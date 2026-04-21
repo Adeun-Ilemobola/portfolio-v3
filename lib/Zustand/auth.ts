@@ -154,18 +154,18 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
         get().clearSession();
         get().setMsg("error", "Failed to send login code. Please try again.");
         console.log("Failed login code request attempt:", error);
-        throw Error("Auth request failed: " + error);
+        return false;
       }
         
 
       get().setMsg("error", "Failed to send login code. Please try again.");
       console.log("Failed login code request attempt");
-      throw Error("Auth request failed: No response from server" + JSON.stringify(data));
+      return false;
     } catch (error) {
       console.error("Auth request error:", error);
       get().clearSession();
       get().setMsg("error", "Unable to send login code right now. Please try again.");
-      throw Error("Auth request failed" + error);
+      return false;
      
     }
   },

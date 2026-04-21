@@ -1,4 +1,12 @@
 import { treaty } from "@elysiajs/eden";
 import type { App } from "@/lib/server/eden";
 
-export const api = treaty<App>("http://localhost:3000").api;
+function ev(mode: "development" | "production") {
+    if (mode === "development") {
+        return "http://localhost:3000";
+    }
+    return "https://www.adeunilemobola.dev/";
+    
+}
+
+export const api = treaty<App>(ev(process.env.NODE_ENV === "development" ? "development" : "production")).api;
