@@ -87,10 +87,12 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
 
           if (!data?.response?.token || !data?.response?.expire) {
             clearSession();
+            console.log("Failed to refresh session");
             return false;
           }
 
           setSession(data.response.token, data.response.expire);
+          console.log("Session refreshed successfully:", { token: data.response.token, expire: data.response.expire });
           return true;
         } catch (error) {
           console.error("Session validation error:", error);
@@ -114,10 +116,12 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
       if (data?.response) {
         get().clearSession();
         get().setMsg("success", "Login code sent to your email. Please check your inbox.");
+        console.log("Login code sent successfully");
         return true;
       }
 
       get().setMsg("error", "Failed to send login code. Please try again.");
+      console.log("Failed login code request attempt");
       return false;
     } catch (error) {
       console.error("Auth request error:", error);
@@ -137,11 +141,13 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
         const { token, expire } = data.response;
         get().setSession(token, expire);
         get().setMsg("success", "Authentication successful!");
+        console.log("Session created:", { token, expire });
         return true;
       }
 
       get().clearSession();
       get().setMsg("error", "Invalid login code. Please try again.");
+      console.log("Invalid login code attempt:", { code });
       return false;
     } catch (error) {
       console.error("Session creation error:", error);

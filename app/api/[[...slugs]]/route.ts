@@ -299,7 +299,7 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
     const { loginCode } = body;
     try {
         const session = await prisma.authSessionSchema.findFirst({
-            where: { loginCode },
+            where: { loginCode , isCodeUsed: false },
             orderBy: { createdAt: "desc" },
         });
 
@@ -318,6 +318,10 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
                 response: null,
             });
         }
+        await prisma.authSessionSchema.update({
+            where: { id: session.id },
+            data: { isCodeUsed: true },
+        });
 
        
         return {

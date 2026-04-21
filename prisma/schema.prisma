@@ -66,6 +66,7 @@ model authSessionSchema {
   token     String   @unique
   expire    DateTime
   loginCode String
+  isCodeUsed Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 

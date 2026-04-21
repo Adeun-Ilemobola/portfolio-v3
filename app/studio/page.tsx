@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent , DialogOverlay } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
+import { toast } from "sonner"
 export default function Page() {
   const [showAuthPopup, setShowAuthPopup] = useState(false);
 
@@ -43,23 +43,40 @@ type AuthPopupProps = {
 function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputCode, setInputCode] = useState("");
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isRequestingCode, setIsRequestingCode] = useState(false);
 
   async function handleClick() {
+    setIsRequestingCode(true);
+    toast.loading("Requesting login code..." ,{ id: "auth" });
     const result = await onClick();
-    if (result) {
-      setIsProcessing(true);
+    if (!result) {
+      toast.error("Failed to request login code. Please try again.", { id: "auth" });
+      setIsRequestingCode(false);
+      return;
     }
+    setIsProcessing(true);
+    setIsRequestingCode(false);
+    toast.success("Login code sent! Please check your email.", { id: "auth" });
   }
 
   async function handleSend() {
+    setIsSendingCode(true);
     if (inputCode.trim() === "") {
-      alert("Please enter a valid code.");
+     toast.error("Please enter a valid code.", { id: "auth" });
+      setIsSendingCode(false);
       return;
     }
+    
     const result = await onSendCode(inputCode);
+  
     if (!result) {
-      alert("Failed to create session. Please check the code and try again.");
+      toast.error("Failed to create session. Please check the code and try again.", { id: "auth" });
+      setIsSendingCode(false);
+      return;
     }
+      toast.success("Session created successfully!", { id: "auth" });
+      setIsSendingCode(false);
   }
 
   return (
@@ -106,7 +123,7 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
                 hover:bg-cyan-300/22 hover:text-white
               "
             >
-              Request Login Code
+              {isRequestingCode ? "Requesting..." : "Request Login Code"}
             </Button>
           ) : (
             <div className="space-y-3">
@@ -133,7 +150,7 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
                   hover:bg-cyan-200
                 "
               >
-                Send
+                {isSendingCode ? "Sending..." : "Send"}
               </Button>
             </div>
           )}

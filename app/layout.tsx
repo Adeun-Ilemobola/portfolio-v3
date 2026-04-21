@@ -3,6 +3,7 @@ import StarfieldBackground from "@/components/Starfield";
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner"
 
 import type { Metadata } from "next";
 import { Inter, Merriweather, JetBrains_Mono } from "next/font/google";
@@ -37,6 +38,7 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
+            <Toaster richColors position="top-right" />
           {children}
           <StarfieldBackground />
           </ThemeProvider>
