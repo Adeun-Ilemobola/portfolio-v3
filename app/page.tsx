@@ -2,9 +2,27 @@
 
 import ImageForm from "@/components/ImageForm"
 import ProjectListing from "@/components/ProjectListing"
+import SkillsPanel from "@/components/SkillsPanel"
 import { LocalFile } from "@/lib/Zod/file"
 import { useState, useEffect } from "react"
-
+const skillGroups = [
+  {
+    label: "frontend",
+    items: ["Next.js", "React", "Tailwind CSS", "shadcn/ui", "TypeScript"],
+  },
+  {
+    label: "backend",
+    items: ["Elysia", "Node.js", "Bun", "Prisma"],
+  },
+  {
+    label: "tools",
+    items: ["Git", "Figma", "Postman", "VS Code"],
+  },
+  {
+    label: "systems",
+    items: ["ESP32", "Arduino", "Fusion 360", "3D Printing"],
+  },
+];
 export default function Page() {
   const [images, setImages] = useState<LocalFile[]>([]);
   // const [tags, setTags] = useState<string[]>([]);
@@ -55,13 +73,11 @@ export default function Page() {
       </div>
 
 
-      <div className="backdrop-blur-xs w-dvw min-h-dvh flex justify-center  gap-15 flex-wrap p-4">
-         <div>
-          <h2 className="text-2xl font-bold text-white mb-4">Skill</h2>
-        </div>
+      <div className="backdrop-blur-xs w-dvw min-h-dvh grid gap-6 md:grid-cols-2 flex-wrap p-4">
+          <SkillsPanel groups={skillGroups} />
 
 
-        <div className=" w-full max-w-130  ">
+        
           <ProjectListing listing={[
             {
               title: "Project 1",
@@ -90,15 +106,15 @@ export default function Page() {
 
 
           ]} />
-        </div>
+     
 
 
 
-       
+
 
       </div>
 
-     
+
     </div>
   )
 }
