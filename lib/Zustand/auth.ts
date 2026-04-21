@@ -141,7 +141,7 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
 
   sendAuthRequest: async () => {
     try {
-      const { data , error   } = await api.auth.session.Request.post();
+      const { data , error   } = await api.auth.session.request.post();
 
       if (data?.response) {
         get().clearSession();
@@ -172,7 +172,7 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
 
   createSession: async (code: string) => {
     try {
-      const { data } = await api.auth.session.Validate.post({
+      const { data } = await api.auth.session.validate.post({
         loginCode: code,
       });
 

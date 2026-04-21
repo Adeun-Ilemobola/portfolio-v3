@@ -255,7 +255,9 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
         });
     }
 })
-.post("/session/Request", async ({ status }) => {
+.post("/session/request", async ({ status , request }) => {
+     console.log("HIT /api/auth/session/request");
+    console.log("method:", request.method);
     try {
         
         const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -295,7 +297,7 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
     }
 }
 )
-.post("/session/Validate", async ({ body, status }) => {
+.post("/session/validate", async ({ body, status }) => {
     const { loginCode } = body;
     try {
         const session = await prisma.authSessionSchema.findFirst({
