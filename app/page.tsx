@@ -101,7 +101,7 @@ export default function Page() {
 
       </div>
 
-      <StarfieldBackground />
+     
     </div>
   )
 }

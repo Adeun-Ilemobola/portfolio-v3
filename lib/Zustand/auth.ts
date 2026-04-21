@@ -1,31 +1,30 @@
 import { create } from "zustand";
-import{api} from "@/lib/eden";
+import { api } from "@/lib/eden";
+import { isAfter, isValid, parseISO, subMinutes } from "date-fns";
+
+type MessageType = "error" | "success" | null;
 
 type AuthUiState = {
   isAuthenticated: boolean;
-  expire: number | null;
+  expire: number | null; // in milliseconds
   token: string | null;
-  createdAt: number | null;
-  msg:{
-    type: "error" | "success" | null;
+  createdAt: number | null; // timestamp in ms
+  msg: {
+    type: MessageType;
     content: string | null;
-  }
+  };
 
-
-  SetSession: (token: string, expire: number) => void;
-  SetMeg: (type: "error" | "success"| null, content: string | null) => void;
+  setSession: (token: string, expire: number) => void;
+  setMsg: (type: MessageType, content: string | null) => void;
   clearSession: () => void;
   checkSession: () => Promise<boolean>;
-  createSession: (code: string) => Promise<void>; 
-
-
-  sendAuthRequest: () => Promise<void>;
- 
+  createSession: (code: string) => Promise<boolean>;
+  sendAuthRequest: () => Promise<boolean>;
 };
 
-const MAX_TIMETOCHECK = 70 * (60 * 1000); // 70 minutes in milliseconds
+const SESSION_REVALIDATE_BUFFER = 5 * 60 * 1000; // 5 minutes before expiry
 
-export const useAuthUiStore = create<AuthUiState>((set , get) => ({
+export const useAuthUiStore = create<AuthUiState>((set, get) => ({
   isAuthenticated: false,
   expire: null,
   token: null,
@@ -34,7 +33,8 @@ export const useAuthUiStore = create<AuthUiState>((set , get) => ({
     type: null,
     content: null,
   },
-  SetMeg: (type, content) => {
+
+  setMsg: (type, content) => {
     set({
       msg: {
         type,
@@ -42,7 +42,8 @@ export const useAuthUiStore = create<AuthUiState>((set , get) => ({
       },
     });
   },
-  SetSession: (token: string, expire: number) => {
+
+  setSession: (token, expire) => {
     set({
       isAuthenticated: true,
       token,
@@ -50,6 +51,7 @@ export const useAuthUiStore = create<AuthUiState>((set , get) => ({
       createdAt: Date.now(),
     });
   },
+
   clearSession: () => {
     set({
       isAuthenticated: false,
@@ -58,89 +60,95 @@ export const useAuthUiStore = create<AuthUiState>((set , get) => ({
       createdAt: null,
     });
   },
+
   checkSession: async () => {
-   try {
-    const { token, expire, createdAt } = get();
-     
+    try {
+      const { token, expire, createdAt, clearSession, setSession } = get();
 
-    if (!token || !expire || !createdAt) {
-      get().clearSession();
-      return false;
-    }
-    const liveSpan = createdAt + expire * 1000;
 
-    const currentTime = Date.now();
-    if (currentTime > liveSpan) {
-      get().clearSession();
-      return false;
-    }else if (currentTime > liveSpan - MAX_TIMETOCHECK) {
-      // every 70 minutes check the server and confirm the session is valid if not clear the session and ask the user to login again
-      try {
-        const {data} = await api.auth.session.get();
-        if (!data) {
-          get().clearSession();
-          return false;
-        }
-        get().SetSession(data.response.token, data.response.expire);
-       get().checkSession(); // recheck the session with the new data
-       return true;
-      } catch (error) {
-        console.error("Session validation error:", error);
-        get().clearSession();
+      if (!token || expire == null || createdAt == null) {
+        clearSession();
         return false;
       }
-     
+      const expireAt = parseISO(expire.toString());
 
+
+      const now = Date.now();
+
+      // already expired
+      if (isAfter(new Date(), expireAt)) {
+        clearSession();
+        return false;
+      }
+
+      // close to expiry -> ask server to confirm / refresh
+      if (isAfter(new Date(), subMinutes(expireAt, 45))) {
+        try {
+          const { data } = await api.auth.session.get();
+
+          if (!data?.response?.token || !data?.response?.expire) {
+            clearSession();
+            return false;
+          }
+
+          setSession(data.response.token, data.response.expire);
+          return true;
+        } catch (error) {
+          console.error("Session validation error:", error);
+          clearSession();
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Session check error:", error);
+      get().clearSession();
+      return false;
     }
-
-    return true;
-    
-   } catch (error) {
-    console.error("Session check error:", error);
-    get().clearSession();
-    return false;
-    
-   }
   },
+
   sendAuthRequest: async () => {
     try {
-      const {data} = await api.auth.session.Request.post();
-      if (data && data.response ) {
-        get().SetMeg("success", "Login code sent to your email. Please check your inbox.");
-        get().clearSession(); // Clear any existing session data
-        
-        return;
-      } else {
-        get().SetMeg("error", "Failed to send login code. Please try again.");
+      const { data } = await api.auth.session.Request.post();
+
+      if (data?.response) {
+        get().clearSession();
+        get().setMsg("success", "Login code sent to your email. Please check your inbox.");
+        return true;
       }
 
-      
+      get().setMsg("error", "Failed to send login code. Please try again.");
+      return false;
     } catch (error) {
       console.error("Auth request error:", error);
-      set({
-        isAuthenticated: false,
-        token: null,
-        expire: null,
-        createdAt: null,
-      });
+      get().clearSession();
+      get().setMsg("error", "Unable to send login code right now. Please try again.");
+      return false;
     }
   },
+
   createSession: async (code: string) => {
-    try {      
-      const {data} = await api.auth.session.Validate.post({
+    try {
+      const { data } = await api.auth.session.Validate.post({
         loginCode: code,
-      })
-      if (data && data.response) {
+      });
+
+      if (data?.response?.token && data?.response?.expire) {
         const { token, expire } = data.response;
-        get().SetSession(token, expire);
-        get().SetMeg("success", "Authentication successful!");
-      } else {
-        get().SetMeg("error", "Invalid login code. Please try again.");
+        get().setSession(token, expire);
+        get().setMsg("success", "Authentication successful!");
+        return true;
       }
+
+      get().clearSession();
+      get().setMsg("error", "Invalid login code. Please try again.");
+      return false;
     } catch (error) {
       console.error("Session creation error:", error);
-      get().SetMeg("error", "An error occurred during authentication. Please try again.");
-    } 
-
-  }
+      get().clearSession();
+      get().setMsg("error", "An error occurred during authentication. Please try again.");
+      return false;
+    }
+  },
 }));

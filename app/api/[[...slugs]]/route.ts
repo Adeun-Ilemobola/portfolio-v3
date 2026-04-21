@@ -6,6 +6,7 @@ import { getR2Client } from "@/lib/r2";
 import { ProjectStoredSchema } from "@/lib/Zod/project";
 import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-helpers";
 import { prisma } from "@/lib/server/prisma";
+import { addDays , isAfter } from "date-fns";
 
 const projectRouter = new Elysia({ prefix: "/project" })
     .get("/:id", async ({ params, status }) => {
@@ -259,11 +260,11 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
     try {
         
         const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expireAt = addDays(new Date(), 1);
         await prisma.authSessionSchema.create({
             data: {
                 token: crypto.randomUUID(),
-                expire: Date.now() + 3600*24 * 1000, // 1 day in milliseconds
-                isValid: true,
+                expire: expireAt, // 1 day in milliseconds
                 loginCode,
             },
         });
@@ -300,7 +301,7 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
             });
         }
 
-        if (session.expire < Date.now()) {
+        if (isAfter(new Date(), session.expire)) {
             return status(401, {
                 success: false,
                 message: "Login code has expired",
@@ -308,11 +309,7 @@ const  SessionRouter = new Elysia({ prefix: "/auth" })
             });
         }
 
-        await prisma.authSessionSchema.update({
-            where: { id: session.id },
-            data: { isValid: true },
-        });
-
+       
         return {
             success: true,
             message: "Session validated successfully",

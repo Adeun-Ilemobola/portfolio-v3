@@ -63,7 +63,7 @@ model project {
 model authSessionSchema {
   id        String   @id @default(uuid())
   token     String   @unique
-  expire    Int
+  expire    DateTime
   loginCode String
   createdAt DateTime @default(now())
 }

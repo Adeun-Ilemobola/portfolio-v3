@@ -38,7 +38,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           {children}
-         
+          <StarfieldBackground />
           </ThemeProvider>
       </body>
     </html>

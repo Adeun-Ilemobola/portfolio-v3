@@ -5,7 +5,7 @@ type Props = {
   ShowAuthPopup: Dispatch<React.SetStateAction<boolean>>
 }
 export default function useAuthGuard({ ShowAuthPopup }: Props) {
-  const { isAuthenticated, checkSession , } = useAuthUiStore();
+  const { isAuthenticated, checkSession , sendAuthRequest , createSession } = useAuthUiStore();
 
   useEffect(() => {
     const  verifyAuthentication = async () => {
@@ -18,5 +18,5 @@ export default function useAuthGuard({ ShowAuthPopup }: Props) {
     verifyAuthentication();
   }, [checkSession]);
 
-  return isAuthenticated;
+  return { isAuthenticated , sendAuthRequest , createSession };
 }
