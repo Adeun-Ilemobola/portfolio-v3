@@ -53,6 +53,7 @@ model project {
   description String
   url         String?
   githubUrl   String?
+  tags        String[] @default([])
 
   files file[]
 
