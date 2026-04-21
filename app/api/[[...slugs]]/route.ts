@@ -6,6 +6,7 @@ import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-he
 import { prisma } from "@/lib/server/prisma";
 import { addDays , isAfter } from "date-fns";
 import { emailSwitcher } from "@/lib/reSend";
+import { ContactSchema } from "@/lib/Zod/Contact";
 
 const projectRouter = new Elysia({ prefix: "/project" })
     .get("/:id", async ({ params, status }) => {
@@ -489,6 +490,42 @@ export const app = new Elysia({ prefix: "/api" })
             body: t.Object({
                 key: t.String(),
             }),
+        }
+    )
+    .post("/contact", async ({ body, status }) => {
+        const { name, email, message, company, phone } = body;
+        try {
+            // Here you would typically send the contact message to your email or CRM
+            console.log("Received contact message:", { name, email, message, company, phone });
+            const emailSent = await emailSwitcher("contact", { 
+                name: name,
+                email: email,
+                text: message,
+                company: company || "N/A",
+                phone: phone || "N/A"
+            });
+            if (!emailSent) {
+                return status(500, {
+                    success: false,
+                    message: "Failed to send contact message email.",
+                });
+            }
+
+            return {
+                success: true,
+                message: "Message received successfully",
+            };
+        } catch (error) {
+            console.error("Contact route failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error processing contact message.",
+            });
+        }
+    },
+        {
+            body:ContactSchema
         }
     );
 
