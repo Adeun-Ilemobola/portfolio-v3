@@ -2,15 +2,12 @@
 
 import ImageForm from "@/components/ImageForm"
 import ProjectListing from "@/components/ProjectListing"
-import StarfieldBackground from "@/components/Starfield"
-import Tagform from "@/components/Tagform"
-import { Button } from "@/components/ui/button"
 import { LocalFile } from "@/lib/Zod/file"
 import { useState, useEffect } from "react"
 
 export default function Page() {
   const [images, setImages] = useState<LocalFile[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  // const [tags, setTags] = useState<string[]>([]);
 
   useEffect(() => {
     console.log("Current images:", images);

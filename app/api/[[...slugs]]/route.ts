@@ -1,7 +1,5 @@
 import { Elysia, t } from "elysia";
-import { PrismaClient } from "@/generated/prisma/client";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { getR2Client } from "@/lib/r2";
 import { ProjectStoredSchema } from "@/lib/Zod/project";
 import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-helpers";

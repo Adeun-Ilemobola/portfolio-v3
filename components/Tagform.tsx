@@ -3,7 +3,6 @@ import { Card } from "./ui/card";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Tag, X } from "lucide-react";
 
 type Props = {

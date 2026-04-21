@@ -1,6 +1,5 @@
 import { ChevronDown, FolderOpen, FileCode2 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 type Props = {
   listing: {

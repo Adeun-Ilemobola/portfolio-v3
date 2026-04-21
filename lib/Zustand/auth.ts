@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { api } from "@/lib/eden";
-import { isAfter, isValid, parseISO, subMinutes } from "date-fns";
+import { isAfter, parseISO, subMinutes } from "date-fns";
 
 type MessageType = "error" | "success" | null;
 
 type AuthUiState = {
   isAuthenticated: boolean;
-  expire: number | null; // in milliseconds
+  expire: Date | null; // in milliseconds
   token: string | null;
   createdAt: number | null; // timestamp in ms
   msg: {
@@ -14,7 +14,7 @@ type AuthUiState = {
     content: string | null;
   };
 
-  setSession: (token: string, expire: number) => void;
+  setSession: (token: string, expire: Date) => void;
   setMsg: (type: MessageType, content: string | null) => void;
   clearSession: () => void;
   checkSession: () => Promise<boolean>;
@@ -22,7 +22,6 @@ type AuthUiState = {
   sendAuthRequest: () => Promise<boolean>;
 };
 
-const SESSION_REVALIDATE_BUFFER = 5 * 60 * 1000; // 5 minutes before expiry
 
 export const useAuthUiStore = create<AuthUiState>((set, get) => ({
   isAuthenticated: false,

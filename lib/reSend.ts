@@ -174,7 +174,7 @@ type EmailMap = {
  const sendEmail = async (to: string, subject: string, html: string) => {
   try {
     const data = await resend.emails.send({
-      from: process.env.RE_SEND_FROM_EMAIL!,
+      from: "Admin <onboarding@resend.dev>"!,
       to,
       subject,
       html,
