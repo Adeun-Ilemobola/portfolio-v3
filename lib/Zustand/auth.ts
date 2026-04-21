@@ -1,8 +1,13 @@
 import { create } from "zustand";
 import { api } from "@/lib/eden";
 import { isAfter, parseISO, subMinutes } from "date-fns";
+import { t } from "elysia";
 
 type MessageType = "error" | "success" | null;
+type LocalStorageData = {
+  token: string;
+  expire: string;
+};
 
 type AuthUiState = {
   isAuthenticated: boolean;
@@ -49,6 +54,11 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
       expire,
       createdAt: Date.now(),
     });
+    const localData: LocalStorageData = {
+      token,
+      expire: expire.toISOString(),
+    };
+    localStorage.setItem("auth", JSON.stringify(localData));
   },
 
   clearSession: () => {
@@ -58,6 +68,7 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
       expire: null,
       createdAt: null,
     });
+    localStorage.removeItem("auth");
   },
 
   checkSession: async () => {
@@ -66,7 +77,26 @@ export const useAuthUiStore = create<AuthUiState>((set, get) => ({
 
 
       if (!token || expire == null || createdAt == null) {
-        clearSession();
+        // no session data check local storage to preview the data. Then it rejects the local storage info if it's expired.
+        const localToken = localStorage.getItem("auth");
+        if (localToken) {
+          try {
+            const parsed: LocalStorageData = JSON.parse(localToken);
+            const expireAt = parseISO(parsed.expire);
+            if (isAfter(new Date(), expireAt)) {
+              localStorage.removeItem("auth");
+              get().clearSession();
+              return false;
+            }
+            setSession(parsed.token, expireAt);
+          } catch (error) {
+            console.error("Failed to parse local storage auth data:", error);
+            localStorage.removeItem("auth");
+            get().clearSession();
+            return false;
+          }
+        }
+
         return false;
       }
       const expireAt = parseISO(expire.toString());
