@@ -114,7 +114,7 @@ export default function Page() {
         bg-white/[0.04] text-white
         hover:border-cyan-300/25 hover:bg-cyan-300/10 hover:text-cyan-100
       "
-      asChild
+      
     >
       <a href="/resume.pdf" target="_blank" rel="noreferrer">
         Resume
@@ -129,7 +129,7 @@ export default function Page() {
         bg-white/[0.04] text-white
         hover:border-cyan-300/25 hover:bg-cyan-300/10 hover:text-cyan-100
       "
-      asChild
+      
     >
       <a href="https://github.com/your-username" target="_blank" rel="noreferrer">
         GitHub
