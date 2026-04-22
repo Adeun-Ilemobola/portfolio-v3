@@ -1,6 +1,6 @@
 "use client";
 
-import  { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Star = {
     id: number;
@@ -36,7 +36,7 @@ function random(min: number, max: number) {
 }
 
 export default function StarfieldBackground({
-    starCount = 200,
+    starCount = 250,
     shootingStarCount = 10,
     className = "",
 }: StarfieldProps) {
@@ -59,17 +59,16 @@ export default function StarfieldBackground({
             driftY: random(-8, 8),
         }));
     }, [starCount]);
-
     const shootingStars = useMemo<ShootingStar[]>(() => {
         return Array.from({ length: shootingStarCount }, (_, i) => ({
             id: i,
-            x: random(5, 85),
-            y: random(0, 45),
-            length: random(80, 180),
-            duration: random(1.8, 3.8),
-            delay: random(2, 16),
-            angle: random(-28, -18),
-            opacity: random(0.2, 0.96),
+            x: random(-15, 95),
+            y: random(-10, 65),
+            length: random(120, 240),
+            duration: random(1.2, 2.4),
+            delay: random(0, 18),
+            angle: random(-32, -18),
+            opacity: random(0.45, 0.95),
         }));
     }, [shootingStarCount]);
 
@@ -116,13 +115,15 @@ export default function StarfieldBackground({
                             left: `${star.x}%`,
                             top: `${star.y}%`,
                             width: `${star.length}px`,
-                            height: "1.5px",
+                            height: "2px",
+                            opacity: star.opacity,
                             background:
-                                "linear-gradient(90deg, rgba(255,255,255,0), rgba(147,197,253,0.2), rgba(255,255,255,0.95))",
-                            filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
+                                "linear-gradient(90deg, rgba(255,255,255,0), rgba(147,197,253,0.18), rgba(255,255,255,0.98))",
+                            filter: "drop-shadow(0 0 10px rgba(255,255,255,0.45))",
                             transform: `rotate(${star.angle}deg)`,
-                            animation: `twinkle ${star.duration}s ease-in-out ${star.delay}s infinite, drift ${random(18, 40)}s ease-in-out ${star.delay}s infinite`,
                             transformOrigin: "left center",
+                            animation: `shoot ${star.duration}s linear ${star.delay}s infinite`,
+                            ["--shoot-angle" as string]: `${star.angle}deg`,
                         }}
                     />
                 ))}
@@ -157,22 +158,22 @@ export default function StarfieldBackground({
           }
         }
 
-        @keyframes shoot {
-          0% {
-            opacity: 0;
-            transform: translate3d(0, 0, 0) rotate(-22deg);
-          }
-          8% {
-            opacity: 1;
-          }
-          55% {
-            opacity: 1;
-          }
-          100% {
-            opacity: 0;
-            transform: translate3d(420px, 180px, 0) rotate(-22deg);
-          }
-        }
+       @keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translate3d(-120px, -60px, 0) rotate(var(--shoot-angle));
+  }
+  8% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(520px, 260px, 0) rotate(var(--shoot-angle));
+  }
+}
       `}</style>
         </>
     );

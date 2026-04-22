@@ -34,19 +34,37 @@ import { api } from "@/lib/eden"
 const skillGroups = [
   {
     label: "frontend",
-    items: ["Next.js", "React", "Tailwind CSS", "shadcn/ui", "TypeScript"],
+    items: ["Next.js", "React", "Tailwind CSS", "shadcn/ui", "TypeScript", "JavaScript"], 
   },
   {
     label: "backend",
-    items: ["Elysia", "Node.js", "Bun", "Prisma"],
+    items: ["Elysia", "Node.js", "Bun", "Prisma", "C++" , "Express.js"  , "better-auth"], 
   },
   {
     label: "tools",
-    items: ["Git", "Figma", "Postman", "VS Code"],
+    items: [
+      "Git", 
+      "Figma", 
+      "Postman", 
+      "VS Code", 
+      "Onshape", 
+      "Adobe Photoshop", 
+      "Lightroom", 
+      "Microsoft Excel" 
+    ],
   },
   {
     label: "systems",
-    items: ["ESP32", "Arduino", "Fusion 360", "3D Printing"],
+    items: [
+      "ESP32", 
+      "Arduino", 
+      "Fusion 360", 
+      "3D Printing", 
+  
+      "Raspberry Pi", 
+      
+      "A/V Equipment" 
+    ],
   },
 ]
 
@@ -59,7 +77,7 @@ export default function Page() {
   }, [images])
 
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="flex min-h-screen flex-col backdrop-blur-[2px]">
       <ContactPopup show={showContact} SetShow={setShowContact} />
 
       <section className="w-full min-h-svh flex justify-center items-center px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-20">
@@ -215,7 +233,16 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
       }
 
       toast.success("Message sent successfully!")
+      setPayload({
+        name: "",
+        email: "",
+        message: "",
+        company: "",
+        phone: "",
+      })
+      setPayloadErrors({})
       setIsSending(false)
+      SetShow(false)
     } catch (error) {
       console.error("Failed to send message:", error)
       setIsSending(false)
@@ -247,6 +274,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
         className="
           overflow-hidden rounded-2xl border
           sm:max-w-3xl
+          sm:max-h-[90vh]
         "
       >
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.10),rgba(255,255,255,0.02))]" />
@@ -458,13 +486,41 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
               </FieldError>
             </Field>
 
-            <Button
+
+            <div className="flex justify-end">
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  SetShow(false);
+                  setPayload({
+                    name: "",
+                    email: "",
+                    message: "",
+                    company: "",
+                    phone: "",
+                  });
+                  setPayloadErrors({});
+                  setIsSending(false);
+                }}
+                className="mr-2"
+              >
+                Cancel
+              </Button>
+
+
+
+              <Button
               onClick={SendMsg}
               disabled={isSending}
               className="self-stretch sm:self-end"
             >
               {isSending ? "Sending..." : "Send Message"}
             </Button>
+
+
+            </div>
+
+            
           </div>
         </div>
       </DialogContent>
