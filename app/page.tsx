@@ -109,11 +109,7 @@ export default function Page() {
     <Button
       variant="outline"
       size="lg"
-      className="
-        rounded-xl border-white/10
-        bg-white/[0.04] text-white
-        hover:border-cyan-300/25 hover:bg-cyan-300/10 hover:text-cyan-100
-      "
+    
       
     >
       <a href="/resume.pdf" target="_blank" rel="noreferrer">
@@ -124,11 +120,7 @@ export default function Page() {
     <Button
       variant="outline"
       size="lg"
-      className="
-        rounded-xl border-white/10
-        bg-white/[0.04] text-white
-        hover:border-cyan-300/25 hover:bg-cyan-300/10 hover:text-cyan-100
-      "
+     
       
     >
       <a href="https://github.com/your-username" target="_blank" rel="noreferrer">
@@ -139,11 +131,7 @@ export default function Page() {
     <Button
       size="lg"
       onClick={() => setShowContact(true)}
-      className="
-        rounded-xl border border-cyan-300/20
-        bg-cyan-300 text-[#04131A]
-        hover:bg-cyan-200
-      "
+     
     >
       Contact / Get in Touch
     </Button>
@@ -160,7 +148,7 @@ export default function Page() {
       </div>
 
 
-      <div className="backdrop-blur-xs w-full min-h-dvh grid gap-0.5 md:grid-cols-2 max-w-7xl mx-auto p-4 justify-items-center">
+      <div className="backdrop-blur-xs w-full min-h-dvh grid gap-0.5 md:grid-cols-2 max-w-7xl mx-auto p-4 items-center justify-items-center">
         <SkillsPanel groups={skillGroups} />
 
 
@@ -263,26 +251,24 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
       onOpenChange={() => SetShow(false)}
       onOpenChangeComplete={(open) => {
         if (!open) {
-          setPayload(ContactSchema.parse({}));
+          setPayload({
+            name: "",
+            email: "",
+            message: "",
+            company: "",
+            phone: "",
+          });
           setPayloadErrors({});
           setIsSending(false);
         }
       }}
     >
-      <DialogOverlay
-        className="
-        bg-[#081120]/36
-        backdrop-blur-lg
-        backdrop-saturate-125
-      "
-      />
+      <DialogOverlay/>
+    
 
       <DialogContent
         className="
-        overflow-hidden rounded-2xl border border-white/10
-        bg-[#101b2f]/85 p-0 text-white
-        shadow-[0_18px_60px_rgba(0,0,0,0.38)]
-        backdrop-blur-2xl
+        overflow-hidden rounded-2xl border 
         sm:max-w-3xl
       "
       >
@@ -441,9 +427,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                         setPayload((prev) => ({ ...prev, message: "" }))
                       }
                       className="
-                      ml-auto border-white/10
-                      bg-white/[0.03] text-white/70
-                      hover:bg-cyan-300/10 hover:text-cyan-100
+                      ml-auto
                     "
                       size="icon-xs"
                     >
@@ -454,8 +438,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                       variant="ghost"
                       size="icon-xs"
                       className="
-                      text-white/70
-                      hover:bg-cyan-300/10 hover:text-cyan-100
+                     
                     "
                     >
                       <IconCopy />
@@ -507,9 +490,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
               onClick={SendMsg}
               disabled={isSending}
               className="
-              self-end  border border-cyan-300/20
-              bg-cyan-300 text-[#04131A]
-              hover:bg-cyan-200
+              self-end 
             "
             >
               {isSending ? "Sending..." : "Send Message"}

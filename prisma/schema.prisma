@@ -56,9 +56,20 @@ model project {
   tags        String[] @default([])
 
   files file[]
+  videos videoLink[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model videoLink {
+  id        String   @id @default(uuid())
+  url       String
+  capture   String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   project  @relation(fields: [projectId], references: [id])
 }
 
 model authSessionSchema {

@@ -4,7 +4,7 @@ import { getR2Client } from "@/lib/r2";
 import { ProjectStoredSchema } from "@/lib/Zod/project";
 import { buildObjectKey, getPublicFileUrl, validateImageFile } from "@/lib/r2-helpers";
 import { prisma } from "@/lib/server/prisma";
-import { addDays , isAfter } from "date-fns";
+import { addDays, isAfter } from "date-fns";
 import { emailSwitcher } from "@/lib/reSend";
 import { ContactSchema } from "@/lib/Zod/Contact";
 
@@ -48,7 +48,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
 
     })
     .post("/create", async ({ body, status }) => {
-        const { id, createdAt, updatedAt, files, ...project } = body;
+        const { id, createdAt, updatedAt, files, videos, ...project } = body;
         try {
             const newProject = await prisma.project.create({
                 data: {
@@ -74,6 +74,18 @@ const projectRouter = new Elysia({ prefix: "/project" })
                     updatedAt: file.updatedAt,
                 })) || [],
             });
+            await prisma.videoLink.createMany({
+                data: videos?.map((video) => ({
+                    url: video.url,
+                    capture: video.capture,
+                    projectId: newProject.id,
+                })) || [],
+            });
+
+
+
+
+
             return {
                 success: true,
                 message: "Project created successfully",
@@ -97,7 +109,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
         }
     )
     .put("/update/:id", async ({ params, body, status }) => {
-        const { createdAt, updatedAt, files, ...project } = body;
+        const { createdAt, updatedAt, files, videos, ...project } = body;
         try {
             const updatedProject = await prisma.project.update({
                 where: { id: params.id },
@@ -154,6 +166,48 @@ const projectRouter = new Elysia({ prefix: "/project" })
 
                 })),
             });
+
+
+            const existingVideos = await prisma.videoLink.findMany({
+                where: { projectId: params.id },
+            });
+            const getNewVideos = videos?.filter((video) => video.id.startsWith("local-")) || [];
+            const getVideosToUpdate = videos?.filter((video) => !video.id.startsWith("local-")) || [];
+
+            const deleteVideoIds = existingVideos
+                .filter((video) => !videos?.some((v) => v.id === video.id))
+                .map((video) => video);
+
+            if (deleteVideoIds.length > 0) {
+                deleteVideoIds.forEach(async (video) => {
+                    await prisma.videoLink.delete({
+                        where: { id: video.id },
+                    });
+                });
+            }
+            if (getVideosToUpdate.length > 0) {
+                getVideosToUpdate.forEach(async (video) => {
+                    await prisma.videoLink.update({
+                        where: { id: video.id },
+                        data: {
+                            url: video.url,
+                            capture: video.capture,
+                            updatedAt: new Date(),
+                        },
+                    });
+                });
+            }
+
+            if (getNewVideos.length > 0) {
+                await prisma.videoLink.createMany({
+                    data: getNewVideos.map((video) => ({
+                        url: video.url,
+                        capture: video.capture,
+                        projectId: params.id,
+
+                    })),
+                });
+            }
 
             return {
                 success: true,
@@ -224,133 +278,133 @@ const projectRouter = new Elysia({ prefix: "/project" })
 
     });
 
-const  SessionRouter = new Elysia({ prefix: "/auth" })
-.get("/session", async ({ status }) => {
-    try {
-        const getSession = await prisma.authSessionSchema.findFirst({
-            orderBy: { createdAt: "desc" },
-        });
-
-        if (!getSession) {
-            return status(404, {
-                success: false,
-                message: "No active session found",
-                response: null,
+const SessionRouter = new Elysia({ prefix: "/auth" })
+    .get("/session", async ({ status }) => {
+        try {
+            const getSession = await prisma.authSessionSchema.findFirst({
+                orderBy: { createdAt: "desc" },
             });
-        }
-        return {
-            success: true,
-            message: "Session is valid",
-            response: {
-                token: getSession.token,
-                expire: getSession.expire,
-            },
-        };
-    } catch (error) {
-        console.error("Session check failed:", error);
-        return status(401, {
-            success: false,
-            message:
-                error instanceof Error ? error.message : "Session is invalid.",
-            response: null,
-        });
-    }
-})
-.post("/session/request", async ({ status , request }) => {
-     console.log("HIT /api/auth/session/request");
-    console.log("method:", request.method);
-    try {
-        
-        const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const expireAt = addDays(new Date(), 1);
-        const session = await prisma.authSessionSchema.create({
-            data: {
-                token: crypto.randomUUID(),
-                expire: expireAt, // 1 day in milliseconds
-                loginCode,
-            },
-        });
-        // send the login code to the user via email or other means here
-        const emailSent = await emailSwitcher("sendCode", { code: loginCode });
-        if (!emailSent) {
-            await prisma.authSessionSchema.delete({
-                where: { id: session.id },
-            });
-            return status(500, {
-                success: false,
-                message: "Failed to send login code email.",
-                response: null,
-            });
-        }
 
-        return {
-            success: true,
-            response:"Login code sent successfully",
-        };
-    } catch (error) {
-        console.error("Auth request failed:", error);
-        return status(500, {
-            success: false,
-            message:
-                error instanceof Error ? error.message : "Error creating session.",
-            response: null,
-        });
-    }
-}
-)
-.post("/session/validate", async ({ body, status }) => {
-    const { loginCode } = body;
-    try {
-        const session = await prisma.authSessionSchema.findFirst({
-            where: { loginCode , isCodeUsed: false },
-            orderBy: { createdAt: "desc" },
-        });
-
-        if (!session) {
-            return status(404, {
-                success: false,
-                message: "Invalid login code",
-                response: null,
-            });
-        }
-
-        if (isAfter(new Date(), session.expire)) {
+            if (!getSession) {
+                return status(404, {
+                    success: false,
+                    message: "No active session found",
+                    response: null,
+                });
+            }
+            return {
+                success: true,
+                message: "Session is valid",
+                response: {
+                    token: getSession.token,
+                    expire: getSession.expire,
+                },
+            };
+        } catch (error) {
+            console.error("Session check failed:", error);
             return status(401, {
                 success: false,
-                message: "Login code has expired",
+                message:
+                    error instanceof Error ? error.message : "Session is invalid.",
                 response: null,
             });
         }
-        await prisma.authSessionSchema.update({
-            where: { id: session.id },
-            data: { isCodeUsed: true },
-        });
+    })
+    .post("/session/request", async ({ status, request }) => {
+        console.log("HIT /api/auth/session/request");
+        console.log("method:", request.method);
+        try {
 
-       
-        return {
-            success: true,
-            message: "Session validated successfully",
-            response: {
-                token: session.token,
-                expire: session.expire,
-            },
-        };
-    } catch (error) {
-        console.error("Session validation failed:", error);
-        return status(500, {
-            success: false,
-            message:
-                error instanceof Error ? error.message : "Error validating session.",
-            response: null,
-        });
+            const loginCode = Math.floor(100000 + Math.random() * 900000).toString();
+            const expireAt = addDays(new Date(), 1);
+            const session = await prisma.authSessionSchema.create({
+                data: {
+                    token: crypto.randomUUID(),
+                    expire: expireAt, // 1 day in milliseconds
+                    loginCode,
+                },
+            });
+            // send the login code to the user via email or other means here
+            const emailSent = await emailSwitcher("sendCode", { code: loginCode });
+            if (!emailSent) {
+                await prisma.authSessionSchema.delete({
+                    where: { id: session.id },
+                });
+                return status(500, {
+                    success: false,
+                    message: "Failed to send login code email.",
+                    response: null,
+                });
+            }
+
+            return {
+                success: true,
+                response: "Login code sent successfully",
+            };
+        } catch (error) {
+            console.error("Auth request failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error creating session.",
+                response: null,
+            });
+        }
     }
-},
-{
-    body: t.Object({
-        loginCode: t.String(),
-    }),
-}
-);
+    )
+    .post("/session/validate", async ({ body, status }) => {
+        const { loginCode } = body;
+        try {
+            const session = await prisma.authSessionSchema.findFirst({
+                where: { loginCode, isCodeUsed: false },
+                orderBy: { createdAt: "desc" },
+            });
+
+            if (!session) {
+                return status(404, {
+                    success: false,
+                    message: "Invalid login code",
+                    response: null,
+                });
+            }
+
+            if (isAfter(new Date(), session.expire)) {
+                return status(401, {
+                    success: false,
+                    message: "Login code has expired",
+                    response: null,
+                });
+            }
+            await prisma.authSessionSchema.update({
+                where: { id: session.id },
+                data: { isCodeUsed: true },
+            });
+
+
+            return {
+                success: true,
+                message: "Session validated successfully",
+                response: {
+                    token: session.token,
+                    expire: session.expire,
+                },
+            };
+        } catch (error) {
+            console.error("Session validation failed:", error);
+            return status(500, {
+                success: false,
+                message:
+                    error instanceof Error ? error.message : "Error validating session.",
+                response: null,
+            });
+        }
+    },
+        {
+            body: t.Object({
+                loginCode: t.String(),
+            }),
+        }
+    );
 
 export const app = new Elysia({ prefix: "/api" })
     .use(SessionRouter)
@@ -497,7 +551,7 @@ export const app = new Elysia({ prefix: "/api" })
         try {
             // Here you would typically send the contact message to your email or CRM
             console.log("Received contact message:", { name, email, message, company, phone });
-            const emailSent = await emailSwitcher("contact", { 
+            const emailSent = await emailSwitcher("contact", {
                 name: name,
                 email: email,
                 text: message,
@@ -525,7 +579,7 @@ export const app = new Elysia({ prefix: "/api" })
         }
     },
         {
-            body:ContactSchema
+            body: ContactSchema
         }
     );
 
