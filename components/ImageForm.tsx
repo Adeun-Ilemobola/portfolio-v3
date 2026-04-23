@@ -1,21 +1,27 @@
 import { Badge } from "@/components/ui/badge";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Card } from "./ui/card";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { ImagePlus, UploadCloud, X } from "lucide-react";
 import {
+  ClientFile,
+  createClientFile,
   createLocalPortfolioFiles,
-  LocalFile,
+  PersistedFile,
+  PersistedFileSchema,
+  StoredFile,
   UploadStatus,
 } from "@/lib/Zod/file";
 import { deleteSingleFile, uploadSingleFile } from "@/lib/r2-helpers";
 
+
 type Props = {
   onDelete: (id: string) => void;
-  onSubmit: (images: LocalFile[]) => void;
-  images: LocalFile[];
-  changeImageStatus: (id: string, status: UploadStatus , remoteUrl?: string , cloudKey?: string ) => void;
+  onSubmit: (image: PersistedFile) => void;
+  images: PersistedFile[];
+  changeImageStatus: (id: string, status: UploadStatus) => void;
+  isDisabled?: boolean;
 };
 
 export default function ImageForm({
@@ -23,69 +29,153 @@ export default function ImageForm({
   onSubmit,
   images,
   changeImageStatus,
+  isDisabled = false
 }: Props) {
   const [mode, setMode] = useState<"view" | "hover">("view");
+  const [ClientFiles, setClientFiles] = useState<ClientFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const displayImages = [...ClientFiles, ...images];
 
-  function onDrop(e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
 
-    if (files.length > 0) {
-      const newLocalFiles = createLocalPortfolioFiles(files);
-      const noDuplicates = newLocalFiles.filter((file) => {
-        return !images.some(
-          (image) => image.name === file.name && image.size === file.size
-        );
-      });
 
-      if (noDuplicates.length > 0) {
-        onSubmit(noDuplicates);
-        uploadFiles(noDuplicates);
+
+  function updateClientFileStatus(
+    fileId: string,
+    status: UploadStatus,
+
+  ) {
+    setClientFiles((prev) =>
+      prev.map((file) =>
+        file.id === fileId
+          ? {
+            ...file,
+            uploadStatus: status,
+
+          }
+          : file
+      )
+    );
+  }
+
+
+
+  async function handleFile(files: File[]) {
+    if (files.length === 0) return;
+    const newLocalFiles = files.map((file) => createClientFile(file));
+    const noDuplicates = newLocalFiles.filter(
+      (nf) =>
+        !images.some(
+          (img) =>
+            img.name === nf.localFile?.name &&
+            img.size === nf.localFile?.size
+        )
+    );
+    console.log("New local files after removing duplicates:", noDuplicates);
+    setClientFiles((prev) => [...prev, ...noDuplicates]);
+    if (noDuplicates.length > 0) {
+      void SaveFile(noDuplicates);
+    }
+
+  }
+
+  async function SaveFile(files: ClientFile[]) {
+    console.log("Starting file upload for ClientFiles:", files);
+
+    for (const file of files) {
+      try {
+        const { url, key } = await uploadSingleFile(file.localFile!, file.id);
+        updateClientFileStatus(file.id, "uploading");
+        const savedFile = PersistedFileSchema.parse({
+          ...file,
+          remoteUrl: url,
+          cloudKey: key,
+          uploadStatus: "uploaded",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        setClientFiles((prev) => prev.filter((f) => f.id !== file.id));
+        onSubmit(savedFile);
+
+
+
+      } catch (error) {
+        console.error("Failed to upload file:", error);
       }
-
-      setMode("view");
     }
   }
 
+  function onDrop(e: React.DragEvent<HTMLDivElement>) {
+    if (isDisabled) return;
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    handleFile(files);
+
+
+  }
+
   async function Del(id: string) {
+    if (isDisabled) return;
     const img = images.find((i) => i.id === id);
     if (!img) return;
 
-    if (img.uploadStatus === "uploaded" && img.cloudKey) {
+    if (!img.id.startsWith("local-")) {
       const { success } = await deleteSingleFile(img.cloudKey);
       if (!success) {
         console.error("Failed to delete file from cloud storage");
       }
     }
-
     onDelete(id);
-    
   }
 
- 
-  async function uploadFiles(files: LocalFile[]) {
-    const nuUpoadFiles = files.filter((f) => f.uploadStatus === "idle");
-    for (const f of nuUpoadFiles) {
-      changeImageStatus(f.id, "uploading");
-      try {
-        const {url , key} = await uploadSingleFile(f.localFile! , f.id);
+  useEffect(() => {
 
-        changeImageStatus(f.id, "uploaded", url, key);
-      } catch {
-        changeImageStatus(f.id, "failed");
+    if (images.length === 0) return;
+
+    const sendCleanup = () => {
+      const localFiles = images.filter((img) => img.id.startsWith("local-"));
+      localFiles.forEach((file) => {
+        Del(file.id);
+      });
+
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        sendCleanup();
       }
-    }
-  }
+    };
+
+    const onPageHide = () => {
+      sendCleanup();
+    };
+
+    const onBeforeUnload = () => {
+      sendCleanup();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("beforeunload", onBeforeUnload);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("beforeunload", onBeforeUnload);
+    };
+  }, [images]);
+
 
   return (
     <Card
-      className="
-        relative w-full overflow-hidden rounded-2xl
-        border border-white/10 bg-white/[0.04]
-        shadow-[0_12px_40px_rgba(0,0,0,0.24)]
-        backdrop-blur-xl
-      "
+      className={
+        `
+          relative w-full overflow-hidden rounded-2xl
+          border border-white/10 bg-white/[0.04]
+          shadow-[0_12px_40px_rgba(0,0,0,0.24)]
+          backdrop-blur-xl
+          ${isDisabled ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        `
+      }
       onDragOver={(e) => {
         e.preventDefault();
         setMode("hover");
@@ -99,7 +189,7 @@ export default function ImageForm({
     >
       <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[linear-gradient(to_bottom,rgba(255,255,255,0.08),rgba(255,255,255,0.02))]" />
 
-      {mode === "hover" && (
+      {mode === "hover" && !isDisabled && (
         <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl border border-cyan-300/25 bg-slate-950/60 backdrop-blur-md">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/25 bg-cyan-300/10">
@@ -136,7 +226,7 @@ export default function ImageForm({
             }}
             className="
               border border-cyan-300/20 bg-cyan-300/12
-              text-cyan-100 hover:bg-cyan-300/18
+              hover:bg-cyan-300/18
             "
           >
             <ImagePlus className="mr-2 h-4 w-4" />
@@ -144,7 +234,7 @@ export default function ImageForm({
           </Button>
         </div>
 
-        {images.length > 0 ? (
+        {displayImages.length > 0 ? (
           <div
             className="
               grid max-h-[28rem] grid-cols-2 gap-3 overflow-y-auto pr-1
@@ -152,9 +242,20 @@ export default function ImageForm({
             "
             onClick={(e) => e.stopPropagation()}
           >
-            {images.map((image) => (
-              <ImageCard key={image.id} image={image} onDelete={Del} />
+            {displayImages.map((img) => (
+              <ImageCard
+                key={img.id}
+                image={{
+                  id: img.id,
+                  name: img.name,
+                  remoteUrl: img.remoteUrl,
+                  uploadStatus: img.uploadStatus,
+                }}
+                onDelete={Del}
+                isDisabled={isDisabled || img.uploadStatus === "uploading"}
+              />
             ))}
+
           </div>
         ) : (
           <div
@@ -197,20 +298,10 @@ export default function ImageForm({
         className="hidden"
         ref={fileInputRef}
         onChange={(e) => {
+          if (isDisabled) return;
           const files = Array.from(e.target.files || []);
-          if (files.length > 0) {
-            const newLocalFiles = createLocalPortfolioFiles(files);
-            const noDuplicates = newLocalFiles.filter((file) => {
-              return !images.some(
-                (image) => image.name === file.name && image.size === file.size
-              );
-            });
-
-            if (noDuplicates.length > 0) {
-              onSubmit(noDuplicates);
-              uploadFiles(noDuplicates);
-            }
-          }
+          handleFile(files);
+          e.target.value = "";
         }}
       />
     </Card>
@@ -220,7 +311,7 @@ export default function ImageForm({
 function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
   if (uploadStatus === "uploading") {
     return (
-      <Badge className="absolute z-40 bottom-8 right-1 border border-white/10 bg-slate-900/80 text-white">
+      <Badge className="absolute z-40 bottom-8 right-1 border border-white/10 bg-slate-900/80 text-cyan-950">
         Uploading...
       </Badge>
     );
@@ -228,7 +319,7 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
 
   if (uploadStatus === "uploaded") {
     return (
-      <Badge className="absolute z-40 bottom-8 right-1 border border-cyan-300/20 bg-cyan-300/15 text-cyan-100">
+      <Badge className="absolute z-40 bottom-8 right-1 border border-cyan-300/20 bg-cyan-300/15 text-cyan-950">
         Uploaded
       </Badge>
     );
@@ -238,7 +329,7 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
     return (
       <Badge
         variant="destructive"
-        className="absolute z-40 bottom-48 right-2 bg-rose-500/90"
+        className="absolute z-40 bottom-48 right-2 bg-rose-500/90 text-cyan-950"
       >
         Failed
       </Badge>
@@ -246,19 +337,26 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
   }
 
   return (
-    <Badge className="absolute z-40 bottom-8 right-2 border border-white/10 bg-slate-900/80 text-white">
+    <Badge className="absolute z-40 bottom-8 right-2 border border-white/10 bg-slate-900/80 text-cyan-950">
       Idle
     </Badge>
-  ) 
-  ;
+  )
+    ;
 }
 
 function ImageCard({
   image,
   onDelete,
+  isDisabled = false
 }: {
-  image: LocalFile;
+  image: {
+    id: string;
+    name: string;
+    remoteUrl: string;
+    uploadStatus: UploadStatus;
+  };
   onDelete: (id: string) => void;
+  isDisabled?: boolean;
 }) {
   return (
     <div
@@ -278,12 +376,13 @@ function ImageCard({
           hover:bg-rose-500
         "
         onClick={() => onDelete(image.id)}
+        disabled={isDisabled}
       >
         <X className="h-4 w-4" />
       </Button>
 
       <Image
-        src={image.previewUrl || ""}
+        src={image.remoteUrl || ""}
         alt={image.name || "Uploaded image"}
         fill
         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"

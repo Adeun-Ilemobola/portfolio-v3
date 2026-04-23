@@ -9,20 +9,24 @@ import { X } from "lucide-react"
 
 type VideoLinkFormProps = {
   videos: VideoLink[]
-  AddVideo: (video: Omit<VideoLink, "id" | "createdAt" | "updatedAt">) => void
-  RemoveVideo: (id: string) => void
+  AddVideo: (video: VideoLink) => void
+  RemoveVideo: (id: string) => void,
+  isDisabled?: boolean
 }
 
 export default function VideoLinkForm({
   videos,
   AddVideo,
   RemoveVideo,
+  isDisabled=false
 }: VideoLinkFormProps) {
-  const [data, setData] = useState<
-    Omit<VideoLink, "id" | "createdAt" | "updatedAt">
-  >({
+  const [data, setData] = useState<VideoLink>({
     url: "",
     capture: "",
+    id: "",
+    createdAt: new Date(),
+    updatedAt: new Date()
+
   })
 
   const [error, setError] = useState<Partial<Record<keyof VideoLink, string>>>(
@@ -36,6 +40,9 @@ export default function VideoLinkForm({
       setData({
         url: "",
         capture: "",
+        id: "",
+        createdAt: new Date(),
+        updatedAt: new Date()
       })
       setError({})
     } else {
@@ -57,6 +64,7 @@ export default function VideoLinkForm({
             id="url"
             value={data.url}
             onChange={(e) => setData({ ...data, url: e.target.value })}
+            disabled={isDisabled}
           />
           <FieldError>{error.url}</FieldError>
         </Field>
@@ -67,12 +75,13 @@ export default function VideoLinkForm({
             id="capture"
             value={data.capture}
             onChange={(e) => setData({ ...data, capture: e.target.value })}
+            disabled={isDisabled}
           />
           <FieldError>{error.capture}</FieldError>
         </Field>
 
         <div className="flex md:pt-6">
-          <Button onClick={handleSubmit} className="w-full md:w-auto">
+          <Button onClick={handleSubmit} className="w-full md:w-auto" disabled={isDisabled}>
             Add Video
           </Button>
         </div>
@@ -89,6 +98,7 @@ export default function VideoLinkForm({
                   variant="ghost"
                   className="absolute top-2 right-2 z-10"
                   onClick={() => RemoveVideo(video.id)}
+                  disabled={isDisabled}
                 >
                   <X className="size-3.5" />
                 </Button>

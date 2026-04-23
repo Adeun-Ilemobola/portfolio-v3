@@ -17,32 +17,59 @@ export const UploadStatusSchema = z.enum([
 export type UploadStatus = z.infer<typeof UploadStatusSchema>;
 
 export type FileKind = z.infer<typeof FileKindSchema>;
-export const LocalFileSchema = z.object({
-    id: z.string(),
-    name: z.string().min(1),
-    kind: FileKindSchema,
-    mimeType: z.string().min(1),
-    size: z.number().nonnegative(),
 
-    localFile: z.instanceof(File).optional(),
-    previewUrl: z.string().optional(), // blob: or base64 or remote preview
-    remoteUrl: z.string().url().optional(),
-    cloudKey: z.string().optional(),
 
-    alt: z.string().optional(),
-    caption: z.string().optional(),
-
-    uploadStatus: UploadStatusSchema.default("idle"),
-    progress: z.number().min(0).max(100).optional(),
-    error: z.string().optional(),
-
-    createdAt: z.coerce.date(),
-    updatedAt: z.coerce.date(),
+const BaseFileSchema = z.object({
+  id: z.string().default(""),
+  name: z.string().min(1),
+  kind: FileKindSchema,
+  mimeType: z.string().min(1),
+  size: z.number().nonnegative(),
+  alt: z.string().optional(),
+  caption: z.string().optional(),
+  projectId: z.string().default(""),
+  uploadStatus: UploadStatusSchema.default("idle"),
 });
 
+export const ClientFileSchema = BaseFileSchema.extend({
+  localFile: z.custom<File>(
+    (value) => typeof File !== "undefined" && value instanceof File
+  ).optional(),
+  remoteUrl: z.string().url(),
+  cloudKey: z.string().optional(),
+});
 
-export type LocalFile = z.infer<typeof LocalFileSchema>;
+export type ClientFile = z.infer<typeof ClientFileSchema>;
 
+export const PersistedFileSchema = BaseFileSchema.extend({
+  remoteUrl: z.string().url(),
+  cloudKey: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type PersistedFile = z.infer<typeof PersistedFileSchema>;
+
+
+export const SaveFilePayloadSchema = ClientFileSchema.omit({
+  localFile: true,
+});
+export type SaveFilePayload = z.infer<typeof SaveFilePayloadSchema>;
+
+
+export function createClientFile(file: File): ClientFile {
+    return ClientFileSchema.parse({
+        id: "local-" + crypto.randomUUID(),
+        localFile: file,
+        remoteUrl: URL.createObjectURL(file),
+        name: file.name,
+        kind: getFileKind(file),
+        mimeType: file.type,
+        size: file.size,
+        alt: "",
+        caption: "",
+    });
+}
 
 
 
@@ -60,7 +87,10 @@ export const StoredFileSchema = z.object({
     alt: z.string().optional(),
     caption: z.string().optional(),
 
-    projectId: z.string(),
+    projectId: z.string().default(" "),
+    uploadStatus: UploadStatusSchema.default("idle"),
+    localFile: z.instanceof(File).optional(),
+
 
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
@@ -68,25 +98,6 @@ export const StoredFileSchema = z.object({
 
 export type StoredFile = z.infer<typeof StoredFileSchema>;
 
-export function localToStoredFile(localFile: LocalFile , projectId: string): StoredFile {
-    const StoredFileSchema = LocalFileSchema.omit({
-        localFile: true,
-        previewUrl: true,
-        uploadStatus: true,
-        progress: true,
-        error: true,
-    }).extend({
-        remoteUrl: z.string().url(),
-        projectId: z.string(),
-        cloudKey: z.string(),
-    });
-    return StoredFileSchema.parse({
-        ...localFile,
-        remoteUrl: localFile.remoteUrl || "",
-        projectId: projectId,
-        cloudKey: localFile.cloudKey ,
-    });
-}
 
 
 export function getFileKind(file: File): FileKind {
@@ -112,26 +123,25 @@ export function getFileKind(file: File): FileKind {
     return "other";
 }
 
-export function createLocalPortfolioFile(file: File): LocalFile {
+export function createLocalPortfolioFile(file: File): StoredFile {
     const now = new Date();
 
-    return LocalFileSchema.parse({
+    return StoredFileSchema.parse({
         id:"local-" + crypto.randomUUID(),
         name: file.name,
         kind: getFileKind(file),
-        mimeType: file.type || "application/octet-stream",
+        mimeType: file.type,
         size: file.size,
         localFile: file,
-        previewUrl: URL.createObjectURL(file),
-        uploadStatus: "idle",
-        createdAt: now,
-        updatedAt: now,
+        remoteUrl: URL.createObjectURL(file),
+ 
+        
     });
 }
 
 export function createLocalPortfolioFiles(
     files: File[] | FileList
-): LocalFile[] {
+): StoredFile[] {
     return Array.from(files).map(createLocalPortfolioFile);
 }
 

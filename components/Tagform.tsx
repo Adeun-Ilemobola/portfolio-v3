@@ -9,9 +9,10 @@ type Props = {
   tags: string[];
   onAddTag: (tag: string) => void;
   onRemoveTag: (tag: string) => void;
+  isDisabled?: boolean;
 };
 
-export default function Tagform({ tags, onAddTag, onRemoveTag }: Props) {
+export default function Tagform({ tags, onAddTag, onRemoveTag , isDisabled=false }: Props) {
   const [inputValue, setInputValue] = useState("");
 
   const submitTag = () => {
@@ -47,11 +48,13 @@ export default function Tagform({ tags, onAddTag, onRemoveTag }: Props) {
             onKeyDown={handleKeyDown}
             placeholder="Add a tag"
             className="border-white/10 bg-white/[0.03] text-white placeholder:text-white/35"
+            disabled={isDisabled}
           />
           <Button
             type="button"
             onClick={submitTag}
-            className="border-cyan-300/20 bg-cyan-300/12 text-cyan-100 hover:bg-cyan-300/18"
+            className="border-cyan-300/20 bg-cyan-300/12  hover:bg-cyan-300/18"
+            disabled={isDisabled}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -64,6 +67,7 @@ export default function Tagform({ tags, onAddTag, onRemoveTag }: Props) {
                 type="button"
                 key={tag}
                 onClick={() => onRemoveTag(tag)}
+                disabled={isDisabled}
                 className="
                   group inline-flex items-center gap-2 rounded-full
                   border border-white/10 bg-white/[0.05]

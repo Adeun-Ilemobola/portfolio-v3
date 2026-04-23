@@ -1,12 +1,15 @@
 "use client";
-
+import { useParams, useSearchParams } from 'next/navigation'
 import useAuthGuard from "@/hooks/useAuthGuard";
 import React, { useState } from "react";
-import { Dialog, DialogContent , DialogOverlay } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import ProjectForm from '@/components/ProjectForm';
 export default function Page() {
+  const params = useParams<{ id: string | undefined }>();
   const [showAuthPopup, setShowAuthPopup] = useState(false);
 
   const { isAuthenticated, sendAuthRequest, createSession } = useAuthGuard({
@@ -29,6 +32,33 @@ export default function Page() {
         onClick={handleAuthRequest}
         onSendCode={handleCreateSession}
       />
+
+      {isAuthenticated ? (<>
+
+        <Tabs defaultValue="project" className="w-full">
+          <TabsList>
+            <TabsTrigger value="project">Create / Update project</TabsTrigger>
+            <TabsTrigger value="password">Password</TabsTrigger>
+          </TabsList>
+          <TabsContent value="project">
+            <ProjectForm id={params.id} />
+          </TabsContent>
+          <TabsContent value="password">Change your password here.</TabsContent>
+        </Tabs>
+
+
+
+
+
+
+
+
+
+
+
+
+      </>) : null
+      }
     </div>
   );
 }
@@ -48,7 +78,7 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
 
   async function handleClick() {
     setIsRequestingCode(true);
-    toast.loading("Requesting login code..." ,{ id: "auth" });
+    toast.loading("Requesting login code...", { id: "auth" });
     const result = await onClick();
     if (!result) {
       toast.error("Failed to request login code. Please try again.", { id: "auth" });
@@ -63,31 +93,31 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
   async function handleSend() {
     setIsSendingCode(true);
     if (inputCode.trim() === "") {
-     toast.error("Please enter a valid code.", { id: "auth" });
+      toast.error("Please enter a valid code.", { id: "auth" });
       setIsSendingCode(false);
       return;
     }
-    
+
     const result = await onSendCode(inputCode);
-  
+
     if (!result) {
       toast.error("Failed to create session. Please check the code and try again.", { id: "auth" });
       setIsSendingCode(false);
       return;
     }
-      toast.success("Session created successfully!", { id: "auth" });
-      setIsSendingCode(false);
+    toast.success("Session created successfully!", { id: "auth" });
+    setIsSendingCode(false);
   }
 
   return (
     <Dialog open={show} onOpenChange={ShowAuthPopup}>
-        <DialogOverlay
-  className="
+      <DialogOverlay
+        className="
     bg-[#081120]/36
     backdrop-blur-lg
     backdrop-saturate-125
   "
-/>
+      />
       <DialogContent
         className="
           overflow-hidden rounded-2xl border border-white/10

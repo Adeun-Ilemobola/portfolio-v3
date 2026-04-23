@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StoredFileSchema } from "./file";
+import { PersistedFileSchema, StoredFileSchema } from "./file";
 
 
 
@@ -18,8 +18,8 @@ export const ProjectStoredSchema = z.object({
     title: z.string().min(1),
     description: z.string().min(1),
     tags: z.array(z.string()),
-    files: z.array(StoredFileSchema).optional(),
-    videos: z.array(VideoLinkSchema).optional(),
+    files: z.array(PersistedFileSchema).min(1).max(18),
+    videos: z.array(VideoLinkSchema).min(0),
     url: z.string().url().optional(),
     githubUrl: z.string().url().optional(),
 
