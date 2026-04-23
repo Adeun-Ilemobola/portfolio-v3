@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PersistedFileSchema, StoredFileSchema } from "./file";
+import { PersistedFileSchema } from "./file";
 
 
 

@@ -74,29 +74,7 @@ export function createClientFile(file: File): ClientFile {
 
 
 
-export const StoredFileSchema = z.object({
-    id: z.string().default(" "),
-    name: z.string().min(1),
-    kind: FileKindSchema,
-    mimeType: z.string().min(1),
-    size: z.number().nonnegative(),
 
-    remoteUrl: z.string().url(),
-    cloudKey: z.string(),
-
-    alt: z.string().optional(),
-    caption: z.string().optional(),
-
-    projectId: z.string().default(" "),
-    uploadStatus: UploadStatusSchema.default("idle"),
-    localFile: z.instanceof(File).optional(),
-
-
-    createdAt: z.coerce.date(),
-    updatedAt: z.coerce.date(),
-});
-
-export type StoredFile = z.infer<typeof StoredFileSchema>;
 
 
 
@@ -123,26 +101,7 @@ export function getFileKind(file: File): FileKind {
     return "other";
 }
 
-export function createLocalPortfolioFile(file: File): StoredFile {
-    const now = new Date();
 
-    return StoredFileSchema.parse({
-        id:"local-" + crypto.randomUUID(),
-        name: file.name,
-        kind: getFileKind(file),
-        mimeType: file.type,
-        size: file.size,
-        localFile: file,
-        remoteUrl: URL.createObjectURL(file),
- 
-        
-    });
-}
 
-export function createLocalPortfolioFiles(
-    files: File[] | FileList
-): StoredFile[] {
-    return Array.from(files).map(createLocalPortfolioFile);
-}
 
 

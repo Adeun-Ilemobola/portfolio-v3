@@ -7,10 +7,9 @@ import { ImagePlus, UploadCloud, X } from "lucide-react";
 import {
   ClientFile,
   createClientFile,
-  createLocalPortfolioFiles,
   PersistedFile,
   PersistedFileSchema,
-  StoredFile,
+ 
   UploadStatus,
 } from "@/lib/Zod/file";
 import { deleteSingleFile, uploadSingleFile } from "@/lib/r2-helpers";

@@ -5,7 +5,6 @@ import SkillsPanel from "@/components/SkillsPanel"
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { ContactData, ContactSchema } from "@/lib/Zod/Contact"
-import { LocalFile } from "@/lib/Zod/file"
 import {
   Field,
   FieldError,
@@ -69,12 +68,9 @@ const skillGroups = [
 ]
 
 export default function Page() {
-  const [images, setImages] = useState<LocalFile[]>([])
   const [showContact, setShowContact] = useState(false)
 
-  useEffect(() => {
-    console.log("Current images:", images)
-  }, [images])
+ 
 
   return (
     <main className="flex min-h-screen flex-col backdrop-blur-[2px]">

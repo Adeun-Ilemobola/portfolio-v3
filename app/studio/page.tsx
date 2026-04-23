@@ -1,5 +1,5 @@
 "use client";
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import useAuthGuard from "@/hooks/useAuthGuard";
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
