@@ -10,26 +10,60 @@ import { ContactSchema } from "@/lib/Zod/Contact";
 
 const projectRouter = new Elysia({ prefix: "/project" })
     .get("/:id", async ({ params, status }) => {
-        const getProject = await prisma.project.findUnique({
-            where: { id: params.id },
-            include: {
-                files: true,
-            },
-        });
+        try {
+            const project = await prisma.project.findUnique({
+                where: { id: params.id },
+                include: {
+                    files: true,
+                    videos: true,
+                },
+            });
 
-        if (!getProject) {
-            return status(404, {
+            if (!project) {
+                return status(404, {
+                    success: false,
+                    message: "Project not found",
+                    response: null,
+                });
+            }
+            const  formattedProject = ProjectStoredSchema.parse({
+                ...project,
+                createdAt: project.createdAt,
+                updatedAt: project.updatedAt,
+                files: project.files.map((file) => ({
+                    id: file.id,
+                    name: file.name,
+                    kind: file.kind,
+                    mimeType: file.mimeType,
+                    size: file.size,
+                    remoteUrl: file.remoteUrl,
+                    cloudKey: file.cloudKey,
+                    createdAt: file.createdAt,
+                    updatedAt: file.updatedAt,
+                })),
+                videos: project.videos.map((video) => ({
+                    id: video.id,
+                    url: video.url,
+                    capture: video.capture,
+                    createdAt: video.createdAt,
+                    updatedAt: video.updatedAt,
+                })),
+            })
+
+            return {
+                success: true,
+                message: "Project retrieved successfully",
+                response: formattedProject,
+            };
+        } catch (error) {
+            console.error("Get project failed:", error);
+            return status(500, {
                 success: false,
-                message: "Project not found",
+                message:
+                    error instanceof Error ? error.message : "Error retrieving project.",
                 response: null,
             });
         }
-
-        return {
-            success: true,
-            message: "Project retrieved successfully",
-            response: getProject,
-        };
 
     })
     .get("/ShowCase", async () => {
@@ -50,6 +84,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
     .post("/create", async ({ body, status }) => {
         const { id, createdAt, updatedAt, files, videos, ...project } = body;
         try {
+            console.log("[Server] Received project creation request with data:", body)
             const newProject = await prisma.project.create({
                 data: {
                     title: project.title,
@@ -60,6 +95,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
 
                 },
             });
+            console.log("[Server] Created project with ID:", newProject.id)
             await prisma.file.createMany({
                 data: files?.map((file) => ({
                     id: file.id,
@@ -74,6 +110,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
                     updatedAt: file.updatedAt,
                 })) || [],
             });
+            console.log("[Server] Created files for project with ID:", newProject.id);
             await prisma.videoLink.createMany({
                 data: videos?.map((video) => ({
                     url: video.url,
@@ -81,8 +118,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
                     projectId: newProject.id,
                 })) || [],
             });
-
-
+            console.log("[Server] Created video links for project with ID:", newProject.id);
 
 
 

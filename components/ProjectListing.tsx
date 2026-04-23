@@ -8,9 +8,10 @@ type Props = {
     projectUrl: string;
   }[];
   edit?: boolean;
+  isLoading?: boolean;
 };
 
-export default function ProjectListing({ listing, edit = false }: Props) {
+export default function ProjectListing({ listing, edit = false, isLoading = false }: Props) {
   return (
     <section
       className="
@@ -38,7 +39,7 @@ export default function ProjectListing({ listing, edit = false }: Props) {
           <div className="absolute left-3 top-0 h-full w-px bg-gradient-to-b from-cyan-300/20 via-white/10 to-transparent" />
 
           <div className="flex max-h-[32rem] flex-col gap-2 overflow-y-auto pr-1">
-            {listing.map((project, index) => (
+            {!isLoading && listing.map((project, index) => (
               <LinkMode key={index} url={project.projectUrl} isLink={edit}>
                 {edit && (<div
                   className="
@@ -87,6 +88,18 @@ export default function ProjectListing({ listing, edit = false }: Props) {
                 </span>
               </LinkMode>
             ))}
+
+            {listing.length === 0 && !isLoading && (
+              <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] p-3 text-sm text-white/50">
+                No projects found.
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.02] p-3 text-sm text-white/50">
+                Loading projects...
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-background/32 backdrop-blur-lg backdrop-saturate-125 duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 dark:bg-background/40",
+        "fixed inset-0 isolate z-50 bg-background/20 backdrop-blur-sm backdrop-saturate-125 duration-300 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0 dark:bg-background/40",
         className
       )}
       {...props}
@@ -53,7 +53,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border/55 bg-popover/78 p-4 text-sm text-popover-foreground shadow-[0_18px_60px_rgba(0,0,0,0.16)] backdrop-blur-2xl ring-1 ring-foreground/6 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 dark:border-border/60 dark:bg-popover/72 dark:shadow-[0_24px_80px_rgba(0,0,0,0.36)] dark:ring-foreground/8",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-border/30 bg-popover/20 p-4 text-sm text-popover-foreground shadow-[0_12px_40px_rgba(0,0,0,0.1)] backdrop-blur-xl ring-1 ring-border/20 duration-300 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 dark:border-border/20 dark:bg-popover/10 dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] dark:ring-border/10",
           className
         )}
         {...props}
@@ -101,7 +101,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-border/45 bg-muted/35 p-4 backdrop-blur-lg sm:flex-row sm:justify-end dark:border-border/50 dark:bg-muted/22",
+        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t border-border/30 bg-muted/10 p-4 backdrop-blur-md sm:flex-row sm:justify-end dark:border-border/20 dark:bg-muted/5",
         className
       )}
       {...props}

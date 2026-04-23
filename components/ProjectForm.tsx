@@ -1,5 +1,4 @@
-import { ProjectStored, ProjectStoredSchema } from '@/lib/Zod/project'
-import { t } from 'elysia'
+import { generateMockProject, ProjectStored, ProjectStoredSchema } from '@/lib/Zod/project'
 import React, {
   useState
   , useEffect
@@ -24,6 +23,8 @@ import Tagform from './Tagform'
 import { IconBrandJavascript, IconRefresh } from '@tabler/icons-react'
 import VideoLinkForm from './videoLink'
 import ImageForm from './ImageForm'
+import { toast } from 'sonner'
+import { api } from '@/lib/eden'
 type ProjectFormProps = {
   id: string | undefined
 }
@@ -45,6 +46,35 @@ export default function ProjectForm({ id }: ProjectFormProps) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if you are actively typing in a form field
+      if (
+        e.target instanceof HTMLElement &&
+        (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")
+      ) {
+        return;
+      }
+
+      // Check for 'z' or 'Z' key press
+      const key = e.key.toLowerCase();
+      if (key === "z" || key === "Z") {
+        e.preventDefault(); 
+        
+        const generatedData = generateMockProject();
+          setFormData(generatedData)
+        
+        console.log(`Mock data generated via '${e.key}' key:`, generatedData);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []); // Empty dependency array ensures this only runs on mount/unmount
+
+  useEffect(() => {
     if (id) {
       setMode('edit')
       // Fetch project data by ID and populate formData
@@ -54,28 +84,72 @@ export default function ProjectForm({ id }: ProjectFormProps) {
     }
   }, [id])
 
+
   async function Submit() {
     setLoading(true)
+    toast.loading(mode === 'create' ? "Creating project..." : "Saving changes...", { id: "project-form" })
     const validation = ProjectStoredSchema.safeParse(formData)
     if (!validation.success) {
       const zodErrors = validation.error.flatten()
-      const fieldErrors: Partial<Record<keyof ProjectStored, string>> = {}
+      const fieldErrors: Partial<Record<keyof ProjectStored, string>> = Object.fromEntries(
+          Object.entries(zodErrors.fieldErrors).map(([field, errors]) => [field, errors?.join(", ")] as [keyof ProjectStored, string])
+         )
+      
       setError(fieldErrors)
       setLoading(false)
+      toast.dismiss("project-form")
+    
       return
     }
     const payload = validation.data
     try {
       if (mode === 'create') {
-        // Call API to create project
+        console.log("Creating project with payload:", payload)
+        const {data, error ,} = await api.project.create.post(payload)
+        if (error) {
+         if (error.status === 422){
+            toast.error("Validation error: " + error.value.message, {id:"project-form"})
+         }
+         if (error.status === 500){
+          toast.error("Server error: " + error.value.message, {id:"project-form"})
+         }
+
+        } else {
+          toast.success("Project created successfully!" , {id:"project-form"})
+        }
       } else {
-        // Call API to update project
+        if (!id) {
+          toast.error("Project ID is missing for update." , {id:"project-form"})
+          console.error("Project ID is missing for update.")
+          setLoading(false)
+          return
+        }
+        console.log("Updating project with ID:", id, "and payload:", payload)
+        const {data, error} = await api.project.update({id}).put(payload)
+        if (error) {
+          if (error.status === 422){
+             toast.error("Validation error: " + error.value.message, {id:"project-form"})
+          }
+          if (error.status === 500){
+           toast.error("Server error: " + error.value.message, {id:"project-form"})
+          }
+ 
+         } else {
+           toast.success("Project updated successfully!" , {id:"project-form"})
+         }
       }
     } catch (err) {
-      // Handle API error
+      console.error(err)
+      toast.error("An error occurred while saving the project." , {id:"project-form"})
     } finally {
+      toast.dismiss("project-form")
       setLoading(false)
-      ClearForm()
+      if (mode === 'create'){
+          ClearForm()
+      }else{
+        // Optionally, you can refetch the project data to ensure the form is up-to-date
+      }
+    
     }
 
   }

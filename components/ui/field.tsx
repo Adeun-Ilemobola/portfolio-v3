@@ -106,7 +106,7 @@ function FieldLabel({
     <Label
       data-slot="field-label"
       className={cn(
-        "group/field-label peer/field-label flex w-fit gap-2 leading-snug text-foreground group-data-[disabled=true]/field:opacity-50 has-data-checked:border-primary/20 has-data-checked:bg-primary/8 has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-border/55 has-[>[data-slot=field]]:bg-background/35 has-[>[data-slot=field]]:backdrop-blur-xl *:data-[slot=field]:p-2.5 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10 dark:has-[>[data-slot=field]]:border-border/60 dark:has-[>[data-slot=field]]:bg-background/28",
+        "group/field-label peer/field-label flex w-fit gap-2 leading-snug text-foreground group-data-[disabled=true]/field:opacity-50 transition-all duration-300 has-data-checked:border-primary/40 has-data-checked:bg-primary/15 has-data-checked:shadow-[0_0_15px_rgba(var(--primary),0.1)] has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-border/30 has-[>[data-slot=field]]:bg-background/10 has-[>[data-slot=field]]:backdrop-blur-md *:data-[slot=field]:p-2.5 dark:has-data-checked:border-primary/30 dark:has-data-checked:bg-primary/10 dark:has-data-checked:shadow-[0_0_20px_rgba(var(--primary),0.15)] dark:has-[>[data-slot=field]]:border-border/20 dark:has-[>[data-slot=field]]:bg-background/5",
         "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
         className
       )}
@@ -160,10 +160,10 @@ function FieldSeparator({
       )}
       {...props}
     >
-      <Separator className="absolute inset-0 top-1/2 bg-border/55 dark:bg-border/60" />
+      <Separator className="absolute inset-0 top-1/2 bg-border/30 dark:bg-border/20" />
       {children && (
         <span
-          className="relative mx-auto block w-fit rounded-md bg-background/70 px-2 text-muted-foreground backdrop-blur-md dark:bg-background/55"
+          className="relative mx-auto block w-fit rounded-md bg-background/20 px-2 text-muted-foreground backdrop-blur-md dark:bg-background/10"
           data-slot="field-separator-content"
         >
           {children}

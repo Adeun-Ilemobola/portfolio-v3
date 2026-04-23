@@ -69,6 +69,35 @@ const skillGroups = [
 
 export default function Page() {
   const [showContact, setShowContact] = useState(false)
+  const [projects, setProjects] = useState<{title: string , projectUrl: string}[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    async function fetchProjects() {
+      setIsLoading(true)
+      try {
+        const { data, error } = await api.project.ShowCase.get()
+        if (error || !data) {
+          console.error("Failed to fetch projects:", error)
+          toast.error("Failed to load projects. Please try again later.")
+          return
+        }
+
+        // Assuming data.response is an array of projects with title and projectUrl
+        setProjects(data.response.map((project: any) => ({
+          title: project.title,
+          projectUrl: `/project/${project.id}`,
+        })))
+      } catch (error) {
+        console.error("Failed to fetch projects:", error)
+        toast.error("Failed to load projects. Please try again later.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
 
  
 
@@ -157,27 +186,10 @@ export default function Page() {
                 title: "Project 1",
                 projectUrl: "/project-1",
               },
-              {
-                title: "Project 2",
-                projectUrl: "/project-2",
-              },
-              {
-                title: "Project 3",
-                projectUrl: "/project-3",
-              },
-              {
-                title: "Project 4",
-                projectUrl: "/project-4",
-              },
-              {
-                title: "Project 5",
-                projectUrl: "/project-5",
-              },
-              {
-                title: "Project 6",
-                projectUrl: "/project-6",
-              },
+             ...projects
             ]}
+            isLoading={isLoading}
+
           />
         </div>
       </section>

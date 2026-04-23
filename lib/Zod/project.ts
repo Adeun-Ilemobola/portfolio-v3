@@ -30,3 +30,32 @@ export const ProjectStoredSchema = z.object({
 
 
 export type ProjectStored = z.infer<typeof ProjectStoredSchema>;
+const randomStr = (prefix: string) => `${prefix}-${Math.random().toString(36).substring(2, 8)}`;
+const generateMockVideos = (): VideoLink[] => {
+  const count = Math.floor(Math.random() * 5) + 1; // 1 to 5 videos
+  
+  return Array.from({ length: count }, () => ({
+    id: `local-${crypto.randomUUID()}`,
+    url: `https://demo-video.com/${randomStr("vid")}.mp4`,
+    capture: randomStr("capture-image"),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
+};
+
+export const generateMockProject = (): ProjectStored => {
+  const tagCount = Math.floor(Math.random() * 5) + 1; // 1 to 5 tags
+
+  return {
+    id: crypto.randomUUID(),
+    title: randomStr("Mock-Project"),
+    description: "This is an auto-generated project description for testing purposes.",
+    tags: Array.from({ length: tagCount }, (_, i) => `Tag-${i + 1}`),
+    files: [], // Explicitly left alone
+    videos: generateMockVideos(),
+    url: `https://example.com/demo/${randomStr("app")}`,
+    githubUrl: `https://github.com/user/${randomStr("repo")}`,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+};
