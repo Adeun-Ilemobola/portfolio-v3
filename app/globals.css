@@ -8,38 +8,53 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.9828 0.0085 247.9123);
+  /* Dropped background from ~98% to ~95% lightness to give it a solid icy base */
+  --background: oklch(0.9528 0.0125 247.9123);
   --foreground: oklch(0.2530 0.0505 254.2719);
-  --card: oklch(0.9958 0.0025 228.7829);
+
+  /* Dropped Cards and Popovers to ~97%, making them slightly lighter than the background so they "float" */
+  --card: oklch(0.9758 0.0085 247.9123);
   --card-foreground: oklch(0.2530 0.0505 254.2719);
-  --popover: oklch(0.9870 0.0062 255.4742);
+  --popover: oklch(0.9670 0.0102 247.9123);
   --popover-foreground: oklch(0.2530 0.0505 254.2719);
+
+  /* Primary cyan is untouched */
   --primary: oklch(0.8065 0.1361 178.1537);
   --primary-foreground: oklch(0.2342 0.0380 218.9936);
-  --secondary: oklch(0.9540 0.0155 247.9898);
+
+  /* Dropped Secondary and Muted from ~96% to ~92% for clear contrast on forms */
+  --secondary: oklch(0.9240 0.0205 247.9898);
   --secondary-foreground: oklch(0.3051 0.0562 248.4997);
-  --muted: oklch(0.9613 0.0103 247.9333);
+  --muted: oklch(0.9313 0.0183 247.9333);
   --muted-foreground: oklch(0.5712 0.0518 252.5878);
-  --accent: oklch(0.9317 0.0326 262.6961);
+
+  --accent: oklch(0.9017 0.0326 262.6961);
   --accent-foreground: oklch(0.3402 0.0684 258.5438);
+
   --destructive: oklch(0.7051 0.1885 16.4508);
   --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.9133 0.0237 250.0821);
-  --input: oklch(0.9646 0.0114 252.0877);
+
+  /* Dropped Border and Input from ~91% to ~86% so the container lines are clearly visible */
+  --border: oklch(0.8633 0.0307 250.0821);
+  --input: oklch(0.8633 0.0307 250.0821);
   --ring: oklch(0.8406 0.1291 180.7385);
+
   --chart-1: oklch(0.8065 0.1361 178.1537);
   --chart-2: oklch(0.7677 0.1242 241.0379);
   --chart-3: oklch(0.6626 0.1876 285.2733);
   --chart-4: oklch(0.7926 0.1425 166.4464);
   --chart-5: oklch(0.6958 0.1338 167.3492);
-  --sidebar: oklch(0.9801 0.0096 252.8096);
+
+  /* Sidebar mapped to the new slightly darker layout */
+  --sidebar: oklch(0.9528 0.0125 247.9123);
   --sidebar-foreground: oklch(0.3051 0.0562 248.4997);
   --sidebar-primary: oklch(0.8065 0.1361 178.1537);
   --sidebar-primary-foreground: oklch(0.2342 0.0380 218.9936);
-  --sidebar-accent: oklch(0.9474 0.0200 250.3856);
+  --sidebar-accent: oklch(0.9174 0.0250 250.3856);
   --sidebar-accent-foreground: oklch(0.3233 0.0591 252.5078);
-  --sidebar-border: oklch(0.9133 0.0237 250.0821);
+  --sidebar-border: oklch(0.8633 0.0307 250.0821);
   --sidebar-ring: oklch(0.8406 0.1291 180.7385);
+
   --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
   --font-serif: Merriweather, ui-serif, serif;
   --font-mono: JetBrains Mono, ui-monospace, monospace;
@@ -179,6 +194,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);

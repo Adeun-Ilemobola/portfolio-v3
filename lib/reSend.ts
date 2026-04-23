@@ -7,7 +7,7 @@ type NewContact = {
   email: string;
   name: string;
   company: string;
-  phone?: string;
+
   text: string;
 };
 
@@ -82,18 +82,7 @@ type EmailMap = {
                 : ""
             }
 
-            ${
-              payload.phone?.trim()
-                ? `
-            <div style="margin-bottom:14px;">
-              <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#8FA5C7;margin-bottom:6px;">Phone</div>
-              <div style="font-size:15px;line-height:1.6;color:#E6F2FF;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;">
-                ${escape(payload.phone)}
-              </div>
-            </div>
-            `
-                : ""
-            }
+           
 
             <div style="margin-top:18px;">
               <div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#8FA5C7;margin-bottom:6px;">Message</div>

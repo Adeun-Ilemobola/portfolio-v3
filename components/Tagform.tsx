@@ -29,32 +29,34 @@ export default function Tagform({ tags, onAddTag, onRemoveTag , isDisabled=false
   };
 
   return (
-    <Card className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-xl">
+    // Changed to border-border/30 and bg-muted/10 for theme-aware glass
+    <Card className="rounded-2xl border border-border/30 bg-muted/10 p-4 backdrop-blur-xl">
       <div className="flex flex-col gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Tag className="h-4 w-4 text-cyan-200" />
-            <h3 className="text-sm font-semibold text-white">Tags</h3>
+            <Tag className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Tags</h3>
           </div>
-          <p className="mt-1 text-xs text-white/50">
+          <p className="mt-1 text-xs text-muted-foreground">
             Add keywords to organize this project.
           </p>
         </div>
 
         <ButtonGroup className="w-full">
+          {/* Stripped custom classes so it inherits your root Input styling perfectly */}
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add a tag"
-            className="border-white/10 bg-white/[0.03] text-white placeholder:text-white/35"
             disabled={isDisabled}
           />
           <Button
             type="button"
             onClick={submitTag}
-            className="border-cyan-300/20 bg-cyan-300/12  hover:bg-cyan-300/18"
             disabled={isDisabled}
+            // Removed hardcoded cyan, using theme primary
+            className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -70,10 +72,10 @@ export default function Tagform({ tags, onAddTag, onRemoveTag , isDisabled=false
                 disabled={isDisabled}
                 className="
                   group inline-flex items-center gap-2 rounded-full
-                  border border-white/10 bg-white/[0.05]
-                  px-3 py-1.5 text-sm text-white/85
-                  transition-all duration-200
-                  hover:border-cyan-300/20 hover:bg-cyan-300/10 hover:text-cyan-100
+                  border border-border/30 bg-background/50
+                  px-3 py-1.5 text-sm text-foreground/80
+                  transition-all duration-300
+                  hover:border-primary/30 hover:bg-primary/10 hover:text-primary
                 "
               >
                 <span>{tag}</span>
@@ -81,7 +83,7 @@ export default function Tagform({ tags, onAddTag, onRemoveTag , isDisabled=false
               </button>
             ))
           ) : (
-            <div className="rounded-xl border border-dashed border-white/10 px-3 py-2 text-xs text-white/40">
+            <div className="rounded-xl border border-dashed border-border/30 px-3 py-2 text-xs text-muted-foreground/60">
               No tags added yet
             </div>
           )}

@@ -143,7 +143,7 @@ export default function ProjectShowcase({ projectId }: Props) {
                   <Badge
                     key={tag}
                     variant="outline"
-                    className="border-primary/20 bg-primary/5 font-mono text-[10px] uppercase tracking-wider text-primary/80"
+                    className=" font-mono text-[12px] uppercase tracking-wider "
                   >
                     {tag}
                   </Badge>
@@ -155,13 +155,13 @@ export default function ProjectShowcase({ projectId }: Props) {
           {/* Action Toolbar */}
           <div className="flex shrink-0 items-center gap-2">
             {project.url && (
-              <Button size="sm" variant="default" className="h-8 gap-2 bg-primary/90 hover:bg-primary">
+              <Button size="sm" variant="default" >
                 <ExternalLink className="h-3.5 w-3.5" />
                 <span>Live Deploy</span>
               </Button>
             )}
             {project.githubUrl && (
-              <Button size="sm" variant="outline" className="h-8 gap-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-muted/20">
+              <Button size="sm" variant="outline" >
                 <SiGithub className="h-3.5 w-3.5" />
                 <span>Source Code</span>
               </Button>

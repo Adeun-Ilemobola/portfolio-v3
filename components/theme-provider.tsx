@@ -15,7 +15,7 @@ function ThemeProvider({
       disableTransitionOnChange
       {...props}
     >
-      {/* <ThemeHotkey /> */}
+      <ThemeHotkey />
       {children}
     </NextThemesProvider>
   )
@@ -55,7 +55,7 @@ function ThemeHotkey() {
         return
       }
 
-      setTheme(resolvedTheme === "dark" ? "dark" : "dark")
+      setTheme(resolvedTheme === "dark" ? "light" : "dark")
     }
 
     window.addEventListener("keydown", onKeyDown)

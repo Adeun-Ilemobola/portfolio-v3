@@ -59,9 +59,7 @@ const skillGroups = [
       "Arduino", 
       "Fusion 360", 
       "3D Printing", 
-  
       "Raspberry Pi", 
-      
       "A/V Equipment" 
     ],
   },
@@ -83,7 +81,6 @@ export default function Page() {
           return
         }
 
-        // Assuming data.response is an array of projects with title and projectUrl
         setProjects(data.response.map((project: any) => ({
           title: project.title,
           projectUrl: `/project/${project.id}`,
@@ -99,8 +96,6 @@ export default function Page() {
     fetchProjects()
   }, [])
 
- 
-
   return (
     <main className="flex min-h-screen flex-col backdrop-blur-[2px]">
       <ContactPopup show={showContact} SetShow={setShowContact} />
@@ -109,16 +104,19 @@ export default function Page() {
         <div className="mx-auto flex w-full max-w-6xl">
           <div className="max-w-4xl space-y-5 sm:space-y-6">
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.22em] text-cyan-200/70">
+              {/* Theme-aware primary text */}
+              <p className="text-xs uppercase tracking-[0.22em] text-primary/80">
                 About Me
               </p>
 
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                Hi, I&apos;m Adeun <span className="text-cyan-200">(AD)</span> 👋
+              {/* Theme-aware foreground and primary span */}
+              <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                Hi, I&apos;m Adeun <span className="text-primary">(AD)</span> 👋
               </h1>
             </div>
 
-            <div className="max-w-3xl space-y-4 text-base leading-7 text-white/72 sm:text-[17px] sm:leading-8">
+            {/* Theme-aware muted foreground */}
+            <div className="max-w-3xl space-y-4 text-base leading-7 text-foreground/80 sm:text-[17px] sm:leading-8">
               <p>
                 I enjoy building practical systems that connect design, software,
                 and hands-on technical problem-solving. A lot of what interests me
@@ -176,20 +174,15 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="w-full min-h-svh  px-4 pb-10 sm:px-6 sm:pb-14 lg:px-8 lg:pb-20">
+      <section className="w-full min-h-svh px-4 pb-10 sm:px-6 sm:pb-14 lg:px-8 lg:pb-20">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 lg:gap-6">
           <SkillsPanel groups={skillGroups} />
 
           <ProjectListing
             listing={[
-              {
-                title: "Project 1",
-                projectUrl: "/project-1",
-              },
-             ...projects
+              ...projects
             ]}
             isLoading={isLoading}
-
           />
         </div>
       </section>
@@ -208,7 +201,6 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
     email: "",
     message: "",
     company: "",
-    phone: "",
   })
   const [payloadErrors, setPayloadErrors] = useState<
     Partial<Record<keyof ContactData, string>>
@@ -246,7 +238,6 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
         email: "",
         message: "",
         company: "",
-        phone: "",
       })
       setPayloadErrors({})
       setIsSending(false)
@@ -269,31 +260,32 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
             email: "",
             message: "",
             company: "",
-            phone: "",
           })
           setPayloadErrors({})
           setIsSending(false)
         }
       }}
     >
+      {/* Root Dialog component handles the frosted overlay now */}
       <DialogOverlay />
 
       <DialogContent
         className="
-          overflow-hidden rounded-2xl border
+          overflow-hidden rounded-2xl
           sm:max-w-3xl
-          sm:max-h-[90vh]
+          sm:max-h-[75vh]
         "
       >
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.10),rgba(255,255,255,0.02))]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(88,199,255,0.10),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(122,108,255,0.10),transparent_25%)]" />
+        {/* Subtle theme-aware inner sheen */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-foreground/[0.05] to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(var(--primary),0.05),transparent_30%)]" />
 
         <div className="relative z-10 flex flex-col gap-5 p-4 sm:p-6">
           <div className="space-y-1">
-            <h2 className="text-2xl font-semibold tracking-wide text-white">
+            <h2 className="text-2xl font-semibold tracking-wide text-foreground">
               Contact Me
             </h2>
-            <p className="text-sm text-white/55">
+            <p className="text-sm text-muted-foreground">
               Feel free to reach out for collaborations or just a friendly hello.
             </p>
           </div>
@@ -301,9 +293,10 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="name" className="text-white/85">
+                <FieldLabel htmlFor="name" className="text-foreground/90">
                   Name
                 </FieldLabel>
+                {/* Notice how clean this is now! The root component does the glass styling. */}
                 <Input
                   id="name"
                   type="text"
@@ -312,21 +305,12 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                   onChange={(e) =>
                     setPayload((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  className="
-                    border-white/10
-                    bg-white/[0.04] text-white
-                    placeholder:text-white/35
-                    focus-visible:border-cyan-300/25
-                    focus-visible:ring-2 focus-visible:ring-cyan-300/20
-                  "
                 />
-                <FieldError className="text-red-300/85">
-                  {payloadErrors.name}
-                </FieldError>
+                <FieldError>{payloadErrors.name}</FieldError>
               </Field>
 
               <Field>
-                <FieldLabel htmlFor="email" className="text-white/85">
+                <FieldLabel htmlFor="email" className="text-foreground/90">
                   Email
                 </FieldLabel>
                 <Input
@@ -337,23 +321,14 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                   onChange={(e) =>
                     setPayload((prev) => ({ ...prev, email: e.target.value }))
                   }
-                  className="
-                    border-white/10
-                    bg-white/[0.04] text-white
-                    placeholder:text-white/35
-                    focus-visible:border-cyan-300/25
-                    focus-visible:ring-2 focus-visible:ring-cyan-300/20
-                  "
                 />
-                <FieldError className="text-red-300/85">
-                  {payloadErrors.email}
-                </FieldError>
+                <FieldError>{payloadErrors.email}</FieldError>
               </Field>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="company" className="text-white/85">
+                <FieldLabel htmlFor="company" className="text-foreground/90">
                   Company (optional)
                 </FieldLabel>
                 <Input
@@ -364,74 +339,40 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                   onChange={(e) =>
                     setPayload((prev) => ({ ...prev, company: e.target.value }))
                   }
-                  className="
-                    border-white/10
-                    bg-white/[0.04] text-white
-                    placeholder:text-white/35
-                    focus-visible:border-cyan-300/25
-                    focus-visible:ring-2 focus-visible:ring-cyan-300/20
-                  "
                 />
-                <FieldError className="text-red-300/85">
-                  {payloadErrors.company}
-                </FieldError>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="phone" className="text-white/85">
-                  Phone (optional)
-                </FieldLabel>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 234 567 8901"
-                  value={payload.phone ?? ""}
-                  onChange={(e) =>
-                    setPayload((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                  className="
-                    border-white/10
-                    bg-white/[0.04] text-white
-                    placeholder:text-white/35
-                    focus-visible:border-cyan-300/25
-                    focus-visible:ring-2 focus-visible:ring-cyan-300/20
-                  "
-                />
-                <FieldError className="text-red-300/85">
-                  {payloadErrors.phone}
-                </FieldError>
+                <FieldError>{payloadErrors.company}</FieldError>
               </Field>
             </div>
 
             <Field>
-              <FieldLabel htmlFor="message" className="text-white/85">
+              <FieldLabel htmlFor="message" className="text-foreground/90">
                 Message
               </FieldLabel>
 
               <FieldContent>
+                {/* Editor Metaphor updated with theme tokens */}
                 <InputGroup
                   className="
                     overflow-hidden
-                    border border-white/10
-                    bg-[#0d1628]/70
-                    shadow-[0_12px_30px_rgba(0,0,0,0.24)]
-                    backdrop-blur-xl
+                    border-border/30
+                    bg-muted/10
+                    shadow-lg
                   "
                 >
                   <InputGroupAddon
                     align="block-start"
                     className="
-                      border-b border-white/10
-                      bg-white/[0.03]
+                      border-b border-border/20
+                      bg-muted/5
                     "
                   >
                     <InputGroupText
                       className="
                         border-0 bg-transparent
-                        font-mono font-medium text-cyan-100/90
+                        font-mono font-medium text-foreground/80
                       "
                     >
-                      <IconBrandJavascript className="text-cyan-200" />
+                      <IconBrandJavascript className="text-primary mr-1" size={16}/>
                       script.js
                     </InputGroupText>
 
@@ -439,17 +380,18 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                       onClick={() =>
                         setPayload((prev) => ({ ...prev, message: "" }))
                       }
-                      className="ml-auto"
+                      className="ml-auto text-muted-foreground hover:text-foreground"
                       size="icon-xs"
                     >
-                      <IconRefresh />
+                      <IconRefresh size={14}/>
                     </InputGroupButton>
 
                     <InputGroupButton
                       variant="ghost"
                       size="icon-xs"
+                      className="text-muted-foreground hover:text-foreground"
                     >
-                      <IconCopy />
+                      <IconCopy size={14}/>
                     </InputGroupButton>
                   </InputGroupAddon>
 
@@ -460,9 +402,8 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                       min-h-[180px] sm:min-h-[220px]
                       border-0 bg-transparent
                       px-4 py-4
-                      font-mono text-[14px] leading-7 text-white/90
-                      placeholder:text-white/28
-                      focus-visible:ring-0 focus-visible:outline-none
+                      font-mono text-[14px] leading-7 text-foreground/90
+                      placeholder:text-muted-foreground/50
                     "
                     value={payload.message ?? ""}
                     onChange={(e) =>
@@ -473,29 +414,26 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                   <InputGroupAddon
                     align="block-end"
                     className="
-                      border-t border-white/10
-                      bg-white/[0.025]
+                      border-t border-border/20
+                      bg-muted/5
                     "
                   >
                     <InputGroupText
                       className="
                         border-0 bg-transparent
-                        font-mono text-xs text-white/45
+                        font-mono text-xs text-muted-foreground/70
                       "
                     >
-                      Line {(payload.message ?? "").length}, Column {(payload.message ?? "").length}
+                      Line {(payload.message ?? "").split('\n').length}, Column {(payload.message ?? "").length}
                     </InputGroupText>
                   </InputGroupAddon>
                 </InputGroup>
               </FieldContent>
 
-              <FieldError className="text-red-300/85">
-                {payloadErrors.message}
-              </FieldError>
+              <FieldError>{payloadErrors.message}</FieldError>
             </Field>
 
-
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3 mt-2">
               <Button
                 variant="destructive"
                 onClick={() => {
@@ -505,29 +443,22 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                     email: "",
                     message: "",
                     company: "",
-                    phone: "",
                   });
                   setPayloadErrors({});
                   setIsSending(false);
                 }}
-                className="mr-2"
               >
                 Cancel
               </Button>
 
-
-
               <Button
-              onClick={SendMsg}
-              disabled={isSending}
-              className="self-stretch sm:self-end"
-            >
-              {isSending ? "Sending..." : "Send Message"}
-            </Button>
-
-
+                onClick={SendMsg}
+                disabled={isSending}
+                className="min-w-[120px]"
+              >
+                {isSending ? "Sending..." : "Send Message"}
+              </Button>
             </div>
-
             
           </div>
         </div>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProjectForm from '@/components/ProjectForm';
+
 export default function Page() {
   const params = useParams<{ id: string | undefined }>();
   const [showAuthPopup, setShowAuthPopup] = useState(false);
@@ -25,7 +26,7 @@ export default function Page() {
   }
 
   return (
-    <div className="flex min-h-dvh w-dvw backdrop-blur-xs">
+    <div className="flex min-h-dvh w-dvw backdrop-blur-xs bg-background/5 text-foreground">
       <AuthPopup
         ShowAuthPopup={setShowAuthPopup}
         show={showAuthPopup}
@@ -34,29 +35,18 @@ export default function Page() {
       />
 
       {isAuthenticated ? (<>
-
-        <Tabs defaultValue="project" className="w-full">
-          <TabsList>
-            <TabsTrigger value="project">Create / Update project</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
-          </TabsList>
-          <TabsContent value="project">
-            <ProjectForm id={params.id} />
-          </TabsContent>
-          <TabsContent value="password">Change your password here.</TabsContent>
-        </Tabs>
-
-
-
-
-
-
-
-
-
-
-
-
+        <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+          <Tabs defaultValue="project" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="project">Create / Update project</TabsTrigger>
+              <TabsTrigger value="password">Password</TabsTrigger>
+            </TabsList>
+            <TabsContent value="project">
+              <ProjectForm id={params.id} />
+            </TabsContent>
+            <TabsContent value="password">Change your password here.</TabsContent>
+          </Tabs>
+        </div>
       </>) : null
       }
     </div>
@@ -111,33 +101,29 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
 
   return (
     <Dialog open={show} onOpenChange={ShowAuthPopup}>
-      <DialogOverlay
-        className="
-    bg-[#081120]/36
-    backdrop-blur-lg
-    backdrop-saturate-125
-  "
-      />
+      <DialogOverlay />
+      
       <DialogContent
         className="
-          overflow-hidden rounded-2xl border border-white/10
-          bg-[#101b2f]/85 p-0 text-white
-          shadow-[0_18px_60px_rgba(0,0,0,0.38)]
-          backdrop-blur-2xl
+          overflow-hidden rounded-2xl border border-border/40
+          bg-background/50 p-0 text-foreground
+          shadow-2xl backdrop-blur-2xl sm:max-w-md
         "
       >
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.10),rgba(255,255,255,0.02))]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(88,199,255,0.10),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(122,108,255,0.10),transparent_25%)]" />
+        {/* Theme-aware fluid glass lighting */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-foreground/[0.05] to-transparent" />
+        <div className="pointer-events-none absolute -top-24 -left-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
 
         <div className="relative z-10 flex flex-col gap-5 p-6">
           <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.22em] text-cyan-200/70">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary/80">
               Admin Access
             </p>
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               Sign in to continue
             </h2>
-            <p className="text-sm text-white/55">
+            <p className="text-sm text-muted-foreground">
               Request a login code, then enter it to create your session.
             </p>
           </div>
@@ -145,40 +131,24 @@ function AuthPopup({ ShowAuthPopup, show, onClick, onSendCode }: AuthPopupProps)
           {!isProcessing ? (
             <Button
               onClick={handleClick}
-              className="
-                h-11 rounded-xl border border-cyan-300/20
-                bg-cyan-300/15 text-cyan-100
-                shadow-[0_0_0_1px_rgba(93,235,208,0.06),0_10px_30px_rgba(0,0,0,0.18)]
-                transition-all duration-300
-                hover:bg-cyan-300/22 hover:text-white
-              "
+              size="lg"
+              className="w-full"
             >
               {isRequestingCode ? "Requesting..." : "Request Login Code"}
             </Button>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Removed ALL custom class overrides. Let the root input component shine. */}
               <Input
                 placeholder="Enter code"
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value)}
-                className="
-                  h-11 rounded-xl border border-white/10
-                  bg-white/[0.04] text-white
-                  placeholder:text-white/35
-                  shadow-none
-                  focus-visible:border-cyan-300/25
-                  focus-visible:ring-2 focus-visible:ring-cyan-300/20
-                "
               />
 
               <Button
                 onClick={handleSend}
-                className="
-                  h-11 w-full rounded-xl border border-cyan-300/20
-                  bg-cyan-300 text-[#04131A]
-                  transition-all duration-300
-                  hover:bg-cyan-200
-                "
+                size="lg"
+                className="w-full"
               >
                 {isSendingCode ? "Sending..." : "Send"}
               </Button>

@@ -583,16 +583,15 @@ export const app = new Elysia({ prefix: "/api" })
         }
     )
     .post("/contact", async ({ body, status }) => {
-        const { name, email, message, company, phone } = body;
+        const { name, email, message, company, } = body;
         try {
             // Here you would typically send the contact message to your email or CRM
-            console.log("Received contact message:", { name, email, message, company, phone });
+            console.log("Received contact message:", { name, email, message, company });
             const emailSent = await emailSwitcher("contact", {
                 name: name,
                 email: email,
                 text: message,
-                company: company || "N/A",
-                phone: phone || "N/A"
+                company: company || "N/A"
             });
             if (!emailSent) {
                 return status(500, {

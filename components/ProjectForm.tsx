@@ -58,11 +58,11 @@ export default function ProjectForm({ id }: ProjectFormProps) {
       // Check for 'z' or 'Z' key press
       const key = e.key.toLowerCase();
       if (key === "z" || key === "Z") {
-        e.preventDefault(); 
-        
+        e.preventDefault();
+
         const generatedData = generateMockProject();
-          setFormData(generatedData)
-        
+        setFormData(generatedData)
+
         console.log(`Mock data generated via '${e.key}' key:`, generatedData);
       }
     };
@@ -92,64 +92,64 @@ export default function ProjectForm({ id }: ProjectFormProps) {
     if (!validation.success) {
       const zodErrors = validation.error.flatten()
       const fieldErrors: Partial<Record<keyof ProjectStored, string>> = Object.fromEntries(
-          Object.entries(zodErrors.fieldErrors).map(([field, errors]) => [field, errors?.join(", ")] as [keyof ProjectStored, string])
-         )
-      
+        Object.entries(zodErrors.fieldErrors).map(([field, errors]) => [field, errors?.join(", ")] as [keyof ProjectStored, string])
+      )
+
       setError(fieldErrors)
       setLoading(false)
       toast.dismiss("project-form")
-    
+
       return
     }
     const payload = validation.data
     try {
       if (mode === 'create') {
         console.log("Creating project with payload:", payload)
-        const {data, error ,} = await api.project.create.post(payload)
+        const { data, error, } = await api.project.create.post(payload)
         if (error) {
-         if (error.status === 422){
-            toast.error("Validation error: " + error.value.message, {id:"project-form"})
-         }
-         if (error.status === 500){
-          toast.error("Server error: " + error.value.message, {id:"project-form"})
-         }
+          if (error.status === 422) {
+            toast.error("Validation error: " + error.value.message, { id: "project-form" })
+          }
+          if (error.status === 500) {
+            toast.error("Server error: " + error.value.message, { id: "project-form" })
+          }
 
         } else {
-          toast.success("Project created successfully!" , {id:"project-form"})
+          toast.success("Project created successfully!", { id: "project-form" })
         }
       } else {
         if (!id) {
-          toast.error("Project ID is missing for update." , {id:"project-form"})
+          toast.error("Project ID is missing for update.", { id: "project-form" })
           console.error("Project ID is missing for update.")
           setLoading(false)
           return
         }
         console.log("Updating project with ID:", id, "and payload:", payload)
-        const {data, error} = await api.project.update({id}).put(payload)
+        const { data, error } = await api.project.update({ id }).put(payload)
         if (error) {
-          if (error.status === 422){
-             toast.error("Validation error: " + error.value.message, {id:"project-form"})
+          if (error.status === 422) {
+            toast.error("Validation error: " + error.value.message, { id: "project-form" })
           }
-          if (error.status === 500){
-           toast.error("Server error: " + error.value.message, {id:"project-form"})
+          if (error.status === 500) {
+            toast.error("Server error: " + error.value.message, { id: "project-form" })
           }
- 
-         } else {
-           toast.success("Project updated successfully!" , {id:"project-form"})
-         }
+
+        } else {
+          toast.success("Project updated successfully!", { id: "project-form" })
+        }
       }
     } catch (err) {
       console.error(err)
-      toast.error("An error occurred while saving the project." , {id:"project-form"})
+      toast.error("An error occurred while saving the project.", { id: "project-form" })
     } finally {
       toast.dismiss("project-form")
       setLoading(false)
-      if (mode === 'create'){
-          ClearForm()
-      }else{
+      if (mode === 'create') {
+        ClearForm()
+      } else {
         // Optionally, you can refetch the project data to ensure the form is up-to-date
       }
-    
+
     }
 
   }
@@ -288,36 +288,45 @@ export default function ProjectForm({ id }: ProjectFormProps) {
         </InputGroup>
       </div>
 
+      <Field>
+        {error.files && <FieldError>{error.files}</FieldError>}
+        <FieldContent>
 
-      <ImageForm
-        images={formData.files ?? []}
-        onDelete={(id) =>
-          setFormData((prev) => ({
-            ...prev,
-            files: prev.files .filter((f) => f.id !== id),
-          }))
-        }
-        onSubmit={(file) =>
-          setFormData((prev) => ({
-            ...prev,
-            files: [...prev.files, file],
-          }))
-        }
-        changeImageStatus={(id, status, ) =>
-          setFormData((prev) => ({
-            ...prev,
-            files:prev.files .map((f) =>
-              f.id === id
-                ? {
-                  ...f,
-                  uploadStatus: status,
-                }
-                : f
-            ),
-          }))
-        }
-        isDisabled={loading}
-      />
+          <ImageForm
+            images={formData.files ?? []}
+            onDelete={(id) =>
+              setFormData((prev) => ({
+                ...prev,
+                files: prev.files.filter((f) => f.id !== id),
+              }))
+            }
+            onSubmit={(file) =>
+              setFormData((prev) => ({
+                ...prev,
+                files: [...prev.files, file],
+              }))
+            }
+            changeImageStatus={(id, status,) =>
+              setFormData((prev) => ({
+                ...prev,
+                files: prev.files.map((f) =>
+                  f.id === id
+                    ? {
+                      ...f,
+                      uploadStatus: status,
+                    }
+                    : f
+                ),
+              }))
+            }
+            isDisabled={loading}
+          />
+
+        </FieldContent>
+      </Field>
+
+
+
 
 
 
