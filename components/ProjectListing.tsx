@@ -4,14 +4,18 @@ import { Button } from "./ui/button";
 
 type Props = {
   listing: {
+    id: string;
     title: string;
     projectUrl: string;
   }[];
   edit?: boolean;
   isLoading?: boolean;
+  onEdit?: (projectUrl: string) => void;
+  onView?: (projectUrl: string) => void;
+  onDelete?: (projectUrl: string) => void;
 };
 
-export default function ProjectListing({ listing, edit = false, isLoading = false }: Props) {
+export default function ProjectListing({ listing, edit = false, isLoading = false, onEdit, onView, onDelete }: Props) {
   return (
     <section
       className="
@@ -46,7 +50,7 @@ export default function ProjectListing({ listing, edit = false, isLoading = fals
                 {edit && (<div
                   className="
                     absolute right-2 top-2
-                    flex flex-row items-center gap-1
+                    flex flex-row items-center gap-4
                     opacity-100 sm:opacity-0
                     pointer-events-auto sm:pointer-events-none
                     sm:top-1/2 sm:-translate-y-1/2
@@ -56,25 +60,37 @@ export default function ProjectListing({ listing, edit = false, isLoading = fals
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 rounded-md"
+                    className="h-8 w-8 rounded-md"
                     onClick={(e) => {
                       e.preventDefault();
-                      window.open(project.projectUrl, "_blank");
+                      onView && onView(project.projectUrl);
                     }}
                   >
                     <Eye className="h-3 w-3" />
                   </Button>
 
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
-                    className="h-6 w-6 rounded-md"
+                    className="h-8 w-8 rounded-md"
                     onClick={(e) => {
                       e.preventDefault();
-                      window.open(project.projectUrl, "_blank");
+                      onEdit && onEdit(project.id);
                     }}
                   >
                     <Pencil className="h-3 w-3" />
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8 rounded-md"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onDelete && onDelete(project.id);
+                    }}
+                  >
+                    <FileCode2 className="h-3 w-3" />
                   </Button>
                 </div>)}
 

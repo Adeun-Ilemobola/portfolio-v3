@@ -67,7 +67,7 @@ const skillGroups = [
 
 export default function Page() {
   const [showContact, setShowContact] = useState(false)
-  const [projects, setProjects] = useState<{title: string , projectUrl: string}[]>([])
+  const [projects, setProjects] = useState<{title: string , projectUrl: string , id: string}[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -84,6 +84,8 @@ export default function Page() {
         setProjects(data.response.map((project: any) => ({
           title: project.title,
           projectUrl: `/project/${project.id}`,
+          id: project.id,
+
         })))
       } catch (error) {
         console.error("Failed to fetch projects:", error)

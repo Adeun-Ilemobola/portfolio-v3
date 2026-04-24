@@ -40,6 +40,8 @@ const projectRouter = new Elysia({ prefix: "/project" })
                     cloudKey: file.cloudKey,
                     createdAt: file.createdAt,
                     updatedAt: file.updatedAt,
+                    uploadStatus: "uploaded" as const,
+                    
                 })),
                 videos: project.videos.map((video) => ({
                     id: video.id,
@@ -144,7 +146,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
             body: ProjectStoredSchema
         }
     )
-    .put("/update/:id", async ({ params, body, status }) => {
+    .post("/update/:id", async ({ params, body, status }) => {
         const { createdAt, updatedAt, files, videos, ...project } = body;
         try {
             const updatedProject = await prisma.project.update({
@@ -445,38 +447,7 @@ const SessionRouter = new Elysia({ prefix: "/auth" })
 export const app = new Elysia({ prefix: "/api" })
     .use(SessionRouter)
     .use(projectRouter)
-    .get("/", () => "Hello from Elysia")
-    .get("/status", () => ({
-        ok: true,
-        message: "API is running",
-        timestamp: new Date().toISOString(),
-    }))
-    .get("/profile", () => ({
-        name: "AD",
-        role: "Frontend / Systems Builder",
-        stack: ["Next.js", "Tailwind", "shadcn/ui", "Zustand", "Elysia"],
-        experimental: true,
-    }))
-    .get("/projects", () => {
-        return [
-            { name: "Project A", description: "A cool project" },
-            { name: "Project B", description: "Another cool project" },
-            { name: "Project C", description: "Yet another cool project" },
-        ]
-    })
-    .post(
-        "/echo",
-        ({ body }) => ({
-            received: body,
-            success: true,
-            message: `Received ${body.name}`,
-        }),
-        {
-            body: t.Object({
-                name: t.String(),
-            }),
-        }
-    )
+    
     .post(
         "/file/upload",
         async ({ body, status }) => {
@@ -540,7 +511,7 @@ export const app = new Elysia({ prefix: "/api" })
         }
     )
     .post("/file/delete", async ({ body, status }) => {
-        const { key } = body;
+        const { key , id } = body;
 
         try {
             const bucket = process.env.R2_BUCKET_NAME;
@@ -551,15 +522,16 @@ export const app = new Elysia({ prefix: "/api" })
                     message: "Missing R2_BUCKET_NAME",
                 });
             }
-
             const r2 = getR2Client();
-
             await r2.send(
                 new DeleteObjectCommand({
                     Bucket: bucket,
                     Key: key,
                 })
             );
+            await prisma.file.delete({
+                where: { cloudKey: key , id },
+            });
 
             return {
                 success: true,
@@ -579,6 +551,7 @@ export const app = new Elysia({ prefix: "/api" })
         {
             body: t.Object({
                 key: t.String(),
+                id: t.String(),
             }),
         }
     )

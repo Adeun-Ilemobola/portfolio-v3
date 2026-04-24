@@ -12,6 +12,7 @@ import {
   UploadStatus,
 } from "@/lib/Zod/file";
 import { deleteSingleFile, uploadSingleFile } from "@/lib/r2-helpers";
+import { api } from "@/lib/eden";
 
 type Props = {
   onDelete: (id: string) => void;
@@ -32,6 +33,7 @@ export default function ImageForm({
   const [ClientFiles, setClientFiles] = useState<ClientFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const displayImages = [...ClientFiles, ...images];
+  const deletingRef = useRef(new Set<string>());
 
   function updateClientFileStatus(
     fileId: string,
@@ -91,46 +93,43 @@ export default function ImageForm({
     handleFile(files);
   }
 
-  async function Del(id: string) {
-    if (isDisabled) return;
-    const img = images.find((i) => i.id === id);
-    if (!img) return;
+ async function Remove(id: string) {
+  if (isDisabled) return;
+  if (deletingRef.current.has(id)) return;
 
-    if (!img.id.startsWith("local-")) {
-      const { success } = await deleteSingleFile(img.cloudKey);
-      if (!success) {
-        console.error("Failed to delete file from cloud storage");
-      }
-    }
+  deletingRef.current.add(id);
+  changeImageStatus(id, "deleting");
+
+  const img = images.find((i) => i.id === id);
+
+  if (!img) {
+    deletingRef.current.delete(id);
     onDelete(id);
+    return;
   }
 
-  useEffect(() => {
-    if (images.length === 0) return;
+  try {
+    if (!img.id.startsWith("local-")) {
+      const { success } = await deleteSingleFile(img.cloudKey, id);
 
-    const sendCleanup = () => {
-      const localFiles = images.filter((img) => img.id.startsWith("local-"));
-      localFiles.forEach((file) => {
-        Del(file.id);
-      });
-    };
+      if (!success) {
+        changeImageStatus(id, "failed");
+        return;
+      }
+    }
 
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") sendCleanup();
-    };
-    const onPageHide = () => sendCleanup();
-    const onBeforeUnload = () => sendCleanup();
+    changeImageStatus(id, "deleted");
 
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    window.addEventListener("pagehide", onPageHide);
-    window.addEventListener("beforeunload", onBeforeUnload);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.removeEventListener("pagehide", onPageHide);
-      window.removeEventListener("beforeunload", onBeforeUnload);
-    };
-  }, [images]);
+    setTimeout(() => {
+      onDelete(id);
+      deletingRef.current.delete(id);
+    }, 600);
+  } catch (err) {
+    console.error(err);
+    changeImageStatus(id, "failed");
+    deletingRef.current.delete(id);
+  }
+}
 
   return (
     <Card
@@ -143,11 +142,13 @@ export default function ImageForm({
       `}
       onDragOver={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         setMode("hover");
       }}
       onDrop={onDrop}
       onDragLeave={(e) => {
         e.preventDefault();
+        e.stopPropagation();
         setMode("view");
       }}
       onClick={() => fileInputRef.current?.click()}
@@ -199,7 +200,7 @@ export default function ImageForm({
         {displayImages.length > 0 ? (
           <div
             className="grid max-h-[28rem] grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4 custom-scrollbar"
-            onClick={(e) => e.stopPropagation()}
+            
           >
             {displayImages.map((img) => (
               <ImageCard
@@ -210,7 +211,7 @@ export default function ImageForm({
                   remoteUrl: img.remoteUrl,
                   uploadStatus: img.uploadStatus,
                 }}
-                onDelete={Del}
+                onDelete={(id) => Remove(id)}
                 isDisabled={isDisabled || img.uploadStatus === "uploading"}
               />
             ))}
@@ -287,6 +288,28 @@ function Status({ uploadStatus }: { uploadStatus: UploadStatus }) {
     );
   }
 
+  if (uploadStatus === "deleting") {
+    return (
+      <Badge
+        variant="destructive"
+        className="absolute z-40 bottom-48 right-2 backdrop-blur-md"
+      >
+        Deleting...
+      </Badge>
+    );
+  }
+
+  if (uploadStatus === "deleted") {
+    return (
+      <Badge
+        variant="destructive"
+        className="absolute z-40 bottom-48 right-2 backdrop-blur-md"
+      >
+        Deleted
+      </Badge>
+    );
+  }
+
   return (
     <Badge className="absolute z-40 bottom-8 right-2 border border-border/30 bg-background/80 text-foreground backdrop-blur-md">
       Idle
@@ -310,14 +333,21 @@ function ImageCard({
 }) {
   return (
     <div
-      onClick={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }}
       className="group relative aspect-square overflow-hidden rounded-xl border border-border/30 bg-muted/10 shadow-[0_8px_24px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
     >
       <Button
         variant="ghost"
         size="icon"
         className="absolute right-2 top-2 z-20 h-8 w-8 rounded-full bg-background/60 text-foreground backdrop-blur-md hover:bg-destructive hover:text-destructive-foreground transition-all duration-300"
-        onClick={() => onDelete(image.id)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onDelete(image.id);
+        }}
         disabled={isDisabled}
       >
         <X className="h-4 w-4" />

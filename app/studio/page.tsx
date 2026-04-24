@@ -1,17 +1,22 @@
 "use client";
 import { useParams } from 'next/navigation'
 import useAuthGuard from "@/hooks/useAuthGuard";
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { Dialog, DialogContent, DialogOverlay } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import ProjectForm from '@/components/ProjectForm';
+import { api } from '@/lib/eden';
+import ProjectListing from '@/components/ProjectListing';
 
 export default function Page() {
-  const params = useParams<{ id: string | undefined }>();
   const [showAuthPopup, setShowAuthPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [projects, setProjects] = useState<{ title: string; projectUrl: string , id: string }[]>([]);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const  [mode, setMode] = useState<"create" | "update"  |null>(null);
 
   const { isAuthenticated, sendAuthRequest, createSession } = useAuthGuard({
     ShowAuthPopup: setShowAuthPopup,
@@ -24,6 +29,33 @@ export default function Page() {
   async function handleCreateSession(code: string) {
     return await createSession(code);
   }
+
+  useEffect(() => {
+      async function fetchProjects() {
+        setIsLoading(true)
+        try {
+          const { data, error } = await api.project.ShowCase.get()
+          if (error || !data) {
+            console.error("Failed to fetch projects:", error)
+            toast.error("Failed to load projects. Please try again later.")
+            return
+          }
+  
+          setProjects(data.response.map((project: any) => ({
+            title: project.title,
+            projectUrl: `/project/${project.id}`,
+            id: project.id,
+          })))
+        } catch (error) {
+          console.error("Failed to fetch projects:", error)
+          toast.error("Failed to load projects. Please try again later.")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+  
+      fetchProjects()
+    }, [])
 
   return (
     <div className="flex min-h-dvh w-dvw backdrop-blur-xs bg-background/5 text-foreground">
@@ -42,7 +74,44 @@ export default function Page() {
               <TabsTrigger value="password">Password</TabsTrigger>
             </TabsList>
             <TabsContent value="project">
-              <ProjectForm id={params.id} />
+              {mode ===  null && (
+                <div className="flex flex-col items-start gap-4">
+                  <Button onClick={() => setMode("create")}>Create New Project</Button>
+                  <ProjectListing 
+                    listing={projects} 
+                    edit={true} 
+                    isLoading={isLoading} 
+                    onEdit={(projectID) => {
+                      setProjectId(projectID);
+                      setMode("update");
+                    }}
+                    onView={(projectUrl) => {
+                      window.open(projectUrl, "_blank");
+                    }}
+                    onDelete={(projectID) => {
+                      // Handle delete logic here
+                    }}
+                  />
+                </div>
+              )}
+              {mode !== null && (
+                <Button 
+                variant="ghost" 
+                onClick={() => setMode(null)}
+                className={""}
+                >
+                  Back to project list
+                </Button>
+              )}
+              {(mode === "create" || mode === "update") && (
+                <ProjectForm 
+                id={projectId} 
+                onfinish={() => {
+                  setMode(null);
+                  setProjectId(null);
+                }}
+                />
+              )}
             </TabsContent>
             <TabsContent value="password">Change your password here.</TabsContent>
           </Tabs>

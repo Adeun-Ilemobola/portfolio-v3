@@ -26,9 +26,10 @@ import ImageForm from './ImageForm'
 import { toast } from 'sonner'
 import { api } from '@/lib/eden'
 type ProjectFormProps = {
-  id: string | undefined
+  id: string | null;
+  onfinish: () => void;
 }
-export default function ProjectForm({ id }: ProjectFormProps) {
+export default function ProjectForm({ id, onfinish }: ProjectFormProps) {
   const [formData, setFormData] = useState<ProjectStored>({
     id: '',
     title: '',
@@ -72,16 +73,41 @@ export default function ProjectForm({ id }: ProjectFormProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []); // Empty dependency array ensures this only runs on mount/unmount
+  }, []); 
 
   useEffect(() => {
-    if (id) {
-      setMode('edit')
-      // Fetch project data by ID and populate formData
-      // Example:
-      // const project = await fetchProjectById(id);
-      // setFormData(project);
+    async function fetchProject() {
+      if (!id) return
+      setLoading(true)
+      try {
+        const { data, error } = await api.project({ id }).get()
+        if (error || !data) {
+          console.error("Failed to fetch project:", error)
+          toast.error("Failed to load project. Please try again later.")
+          return
+        }
+
+        setFormData({
+          id: data.response.id,
+          title: data.response.title,
+          description: data.response.description,
+          tags: data.response.tags,
+          files: data.response.files,
+          url: data.response.url,
+          githubUrl: data.response.githubUrl,
+          createdAt: new Date(data.response.createdAt),
+          updatedAt: new Date(data.response.updatedAt),
+          videos: data.response.videos,
+        })
+      } catch (error) {
+        console.error("Failed to fetch project:", error)
+        toast.error("Failed to load project. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchProject()
   }, [id])
 
 
@@ -116,6 +142,7 @@ export default function ProjectForm({ id }: ProjectFormProps) {
 
         } else {
           toast.success("Project created successfully!", { id: "project-form" })
+          onfinish()
         }
       } else {
         if (!id) {
@@ -125,7 +152,7 @@ export default function ProjectForm({ id }: ProjectFormProps) {
           return
         }
         console.log("Updating project with ID:", id, "and payload:", payload)
-        const { data, error } = await api.project.update({ id }).put(payload)
+        const { data, error } = await api.project.update({ id }).post(payload)
         if (error) {
           if (error.status === 422) {
             toast.error("Validation error: " + error.value.message, { id: "project-form" })
@@ -136,6 +163,7 @@ export default function ProjectForm({ id }: ProjectFormProps) {
 
         } else {
           toast.success("Project updated successfully!", { id: "project-form" })
+          onfinish()
         }
       }
     } catch (err) {

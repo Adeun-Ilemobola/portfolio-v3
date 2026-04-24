@@ -68,9 +68,10 @@ export async function uploadSingleFile(fileBL: File, id: string): Promise<{url: 
   };
 }
 
-export async function deleteSingleFile(cloudKey: string): Promise<{success: boolean , message: string}> {
+export async function deleteSingleFile(cloudKey: string , id: string): Promise<{success: boolean , message: string}> {
     const { data, error, status } = await api.file.delete.post({
         key: cloudKey,
+        id,
     });
 
     if (error) {

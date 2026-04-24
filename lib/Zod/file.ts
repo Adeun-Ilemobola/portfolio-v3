@@ -13,6 +13,8 @@ export const UploadStatusSchema = z.enum([
     "uploading",
     "uploaded",
     "failed",
+    "deleting",
+    "deleted",
 ]);
 export type UploadStatus = z.infer<typeof UploadStatusSchema>;
 
