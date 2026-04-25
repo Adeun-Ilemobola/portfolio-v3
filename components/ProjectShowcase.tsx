@@ -19,6 +19,7 @@ import {
   FileText,
 } from "lucide-react";
 import { SiGithub } from "react-icons/si";
+import { ProjectMarkdownViewer } from "./ProjectMDXViewer";
 
 type Props = {
   projectId: string;
@@ -116,7 +117,7 @@ export default function ProjectShowcase({ projectId }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 font-sans sm:px-6 lg:px-8">
-      
+
       {/* CLI / Breadcrumb Overlay */}
       <div className="flex items-center gap-2 pl-2 font-mono text-sm text-muted-foreground/80">
         <Terminal className="h-4 w-4 text-primary/80" />
@@ -127,7 +128,7 @@ export default function ProjectShowcase({ projectId }: Props) {
 
       {/* Main Unified Interface Window */}
       <Card className="flex flex-col overflow-hidden border-border/40 bg-background/20 p-0 shadow-2xl backdrop-blur-md">
-        
+
         {/* Editor Tab Bar */}
         <div className="flex flex-col gap-3 border-b border-border/40 bg-muted/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -135,7 +136,7 @@ export default function ProjectShowcase({ projectId }: Props) {
               <FileCode className="h-4 w-4 text-primary" />
               <span>project_manifest.tsx</span>
             </div>
-            
+
             {/* Inline Technical Tags */}
             {project.tags.length > 0 && (
               <div className="hidden items-center gap-2 border-l border-border/40 pl-4 md:flex">
@@ -171,14 +172,14 @@ export default function ProjectShowcase({ projectId }: Props) {
 
         {/* TOP SECTION: Split Pane Workspace (Media + Meta) */}
         <div className="grid grid-cols-1 divide-y divide-border/40 xl:grid-cols-[1.6fr_0.8fr] xl:divide-x xl:divide-y-0">
-          
+
           {/* LEFT PANE: Media Inspector */}
           <div className="flex flex-col bg-background/5">
             <div className="flex items-center gap-2 border-b border-border/20 bg-muted/5 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
               <LayoutPanelLeft className="h-3.5 w-3.5" />
               <span>Viewport_Inspector</span>
             </div>
-            
+
             <div className="flex flex-col gap-4 p-4 sm:p-6">
               {selectedImage ? (
                 <>
@@ -314,13 +315,13 @@ export default function ProjectShowcase({ projectId }: Props) {
             <FileText className="h-3.5 w-3.5" />
             <span>README.md</span>
           </div>
-          
+
           <div className="flex flex-col gap-6 p-6 sm:p-8">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-4xl">
                 {project.title}
               </h1>
-              
+
               {/* Mobile tags fallback */}
               {project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1 md:hidden">
@@ -333,9 +334,12 @@ export default function ProjectShowcase({ projectId }: Props) {
               )}
             </div>
 
-            <div className="prose prose-invert max-w-none whitespace-pre-wrap text-sm leading-relaxed text-foreground/80 sm:text-base">
-              {project.description}
+            <div className="max-w-none">
+              <ProjectMarkdownViewer
+                content={project.description || "No description provided."}
+              />
             </div>
+
           </div>
         </div>
 

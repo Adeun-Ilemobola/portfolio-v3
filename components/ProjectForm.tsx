@@ -293,11 +293,13 @@ export default function ProjectForm({ id, onfinish }: ProjectFormProps) {
 
 
       <div className="grid w-full  gap-4">
-        <InputGroup>
+        <InputGroup
+          className="min-h-55 max-h-125 overflow-hidden "
+        >
           <InputGroupTextarea
             id="textarea-code-32"
             placeholder="Project description, technologies used, challenges faced, etc."
-            className="min-h-90"
+            className=""
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             disabled={loading}

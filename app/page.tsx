@@ -29,6 +29,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { api } from "@/lib/eden"
+import Link from "next/link"
 
 const skillGroups = [
   {
@@ -56,8 +57,6 @@ const skillGroups = [
     label: "systems",
     items: [
       "ESP32", 
-      "Arduino", 
-      "Fusion 360", 
       "3D Printing", 
       "Raspberry Pi", 
       "A/V Equipment" 
@@ -149,19 +148,19 @@ export default function Page() {
 
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
               <Button variant="outline" size="lg"  className="w-full sm:w-auto">
-                <a href="/resume.pdf" target="_blank" rel="noreferrer">
+                <Link href="https://drive.google.com/file/d/1xT9-1b2CizeNdhbkg59XFXZjSHCehPea/view?usp=sharing" target="_blank" rel="noreferrer">
                   Resume
-                </a>
+                </Link>
               </Button>
 
               <Button variant="outline" size="lg"  className="w-full sm:w-auto">
-                <a
+                <Link
                   href="https://github.com/your-username"
                   target="_blank"
                   rel="noreferrer"
                 >
                   GitHub
-                </a>
+                </Link>
               </Button>
 
               <Button
