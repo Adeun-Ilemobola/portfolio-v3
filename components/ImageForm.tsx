@@ -91,6 +91,7 @@ export default function ImageForm({
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
     handleFile(files);
+    setMode("view");
   }
 
  async function Remove(id: string) {
@@ -146,10 +147,18 @@ export default function ImageForm({
         setMode("hover");
       }}
       onDrop={onDrop}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setMode("view");
+        }}
+      onDragEnd={() => {  
         setMode("view");
+      }}
+      onDragStart={(e)=>{
+         e.preventDefault();
+        e.stopPropagation();
+        setMode("hover");
       }}
       onClick={() => fileInputRef.current?.click()}
     >
