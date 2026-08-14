@@ -33,40 +33,49 @@ import Link from "next/link"
 
 const skillGroups = [
   {
+    label: "prototyping",
+    items: ["Onshape", "CAD", "FDM 3D printing"]
+
+  },
+  {
+    label: "embedded",
+    items: [
+      "ESP32",
+      "3D Printing",
+      "Raspberry Pi",
+      "A/V Equipment",
+      "ESP-IDF",
+      "Raspberry Pi", "C++", "GPIO", "PWM", "SPI", "I²C", "serial communication"
+    ],
+  },
+  {
     label: "frontend",
-    items: ["Next.js", "React", "Tailwind CSS", "shadcn/ui", "TypeScript", "JavaScript"], 
+    items: ["Next.js", "React", "Tailwind CSS", "shadcn/ui", "TypeScript", "JavaScript"],
   },
   {
     label: "backend",
-    items: ["Elysia", "Node.js", "Bun", "Prisma", "C++" , "Express.js"  , "better-auth"], 
+    items: ["Elysia", "Node.js", "Bun", "Prisma", "C++", "Express.js", "better-auth"],
   },
   {
     label: "tools",
     items: [
-      "Git", 
-      "Figma", 
-      "Postman", 
-      "VS Code", 
-      "Onshape", 
-      "Adobe Photoshop", 
-      "Lightroom", 
-      "Microsoft Excel" 
+      "Git",
+      "Figma",
+      "Postman",
+      "VS Code",
+      "Onshape",
+      "Adobe Photoshop",
+      "Lightroom",
+      "Microsoft Excel"
     ],
   },
-  {
-    label: "systems",
-    items: [
-      "ESP32", 
-      "3D Printing", 
-      "Raspberry Pi", 
-      "A/V Equipment" 
-    ],
-  },
+
+
 ]
 
 export default function Page() {
   const [showContact, setShowContact] = useState(false)
-  const [projects, setProjects] = useState<{title: string , projectUrl: string , id: string}[]>([])
+  const [projects, setProjects] = useState<{ title: string, projectUrl: string, id: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
@@ -119,43 +128,44 @@ export default function Page() {
             {/* Theme-aware muted foreground */}
             <div className="max-w-3xl space-y-4 text-base leading-7 text-foreground/80 sm:text-[17px] sm:leading-8">
               <p>
-                I enjoy building practical systems that connect design, software,
-                and hands-on technical problem-solving. A lot of what interests me
-                lives in that middle space between clean user experience and real
-                underlying functionality.
+                I enjoy building systems that sit between software, hardware, and practical
+                problem-solving. A lot of what interests me involves taking something from an
+                idea, through code and prototyping, into a system that actually works in the
+                real world.
               </p>
 
               <p>
-                I&apos;m currently studying toward an Associate of Science at
-                Douglas College, and I keep growing through personal builds,
-                experimentation, and technical projects. I work with tools like
-                Next.js, TypeScript, and C++, and I learn best by making things
-                that have a clear purpose.
+                My current work is focused heavily on embedded systems, robotics, and
+                hardware-software integration. I work with technologies including Rust,
+                ESP-IDF, ESP32, C++, TypeScript, React, sensors, motor control, serial
+                communication, CAD, and 3D printing.
               </p>
 
               <p>
-                One project that reflects that well is a custom 2-axis LiDAR
-                scanning system I built using sensors, servo motors, a Raspberry Pi,
-                control software, and custom 3D-printed components. I like projects
-                that require iteration, troubleshooting, and structure.
+                One of my main projects is Pinora, a modular embedded hardware-control
+                platform that connects ESP32 firmware with desktop software. I am also
+                developing a newer version of my mechanical LiDAR system, combining distance
+                sensing, motorized scanning, calibration, custom 3D-printed hardware, and
+                desktop visualization.
               </p>
 
               <p>
-                At the core, I care about building things that feel thoughtful,
-                reliable, and well put together.
+                I learn best by building, testing, breaking things, debugging them, and
+                improving the design. I care about making systems that are understandable,
+                reliable, and thoughtfully put together.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
-              <Button variant="outline" size="lg"  className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link href="https://drive.google.com/file/d/1xT9-1b2CizeNdhbkg59XFXZjSHCehPea/view?usp=sharing" target="_blank" rel="noreferrer">
                   Resume
                 </Link>
               </Button>
 
-              <Button variant="outline" size="lg"  className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link
-                  href="https://github.com/your-username"
+                  href="https://github.com/Adeun-Ilemobola"
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -373,7 +383,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                         font-mono font-medium text-foreground/80
                       "
                     >
-                      <IconBrandJavascript className="text-primary mr-1" size={16}/>
+                      <IconBrandJavascript className="text-primary mr-1" size={16} />
                       script.js
                     </InputGroupText>
 
@@ -384,7 +394,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                       className="ml-auto text-muted-foreground hover:text-foreground"
                       size="icon-xs"
                     >
-                      <IconRefresh size={14}/>
+                      <IconRefresh size={14} />
                     </InputGroupButton>
 
                     <InputGroupButton
@@ -392,7 +402,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                       size="icon-xs"
                       className="text-muted-foreground hover:text-foreground"
                     >
-                      <IconCopy size={14}/>
+                      <IconCopy size={14} />
                     </InputGroupButton>
                   </InputGroupAddon>
 
@@ -460,7 +470,7 @@ function ContactPopup({ SetShow, show }: ContactPopupProps) {
                 {isSending ? "Sending..." : "Send Message"}
               </Button>
             </div>
-            
+
           </div>
         </div>
       </DialogContent>
