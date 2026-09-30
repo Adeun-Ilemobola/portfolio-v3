@@ -265,7 +265,7 @@ const projectRouter = new Elysia({ prefix: "/project" })
         {
             body: ProjectStoredSchema
         })
-    .delete("/delete/:id", async ({ params, status }) => {
+    .delete("/remove/:id", async ({ params, status }) => {
         try {
             const project = await prisma.project.findUnique({
                 where: { id: params.id },
@@ -282,21 +282,25 @@ const projectRouter = new Elysia({ prefix: "/project" })
             await Promise.all(
                 project.files.map(async (file) => {
                     try {
+                        await prisma.file.delete({
+                            where: { id: file.id },
+                        });
                         await getR2Client().send(
                             new DeleteObjectCommand({
                                 Bucket: process.env.R2_BUCKET_NAME!,
                                 Key: file.cloudKey!,
                             })
                         );
-                        await prisma.file.delete({
-                            where: { id: file.id },
-                        });
+                       
                     } catch (error) {
                         console.error(`Failed to delete file ${file.id} from R2:`, error);
                     }
                 })
             );
-
+            
+            await prisma.videoLink.deleteMany({
+                where: { projectId: params.id },
+            });
             await prisma.project.delete({
                 where: { id: params.id },
             });
@@ -594,5 +598,8 @@ export const app = new Elysia({ prefix: "/api" })
 
 
 
-export const GET = app.fetch;
-export const POST = app.fetch;
+export const GET = app.handle;
+export const POST = app.handle;
+export const PUT = app.handle;
+export const PATCH = app.handle;
+export const DELETE = app.handle;

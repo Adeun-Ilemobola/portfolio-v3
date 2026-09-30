@@ -17,6 +17,7 @@ export default function Page() {
   const [projects, setProjects] = useState<{ title: string; projectUrl: string , id: string }[]>([]);
   const [projectId, setProjectId] = useState<string | null>(null);
   const  [mode, setMode] = useState<"create" | "update"  |null>(null);
+  const [startRefreshing, setStartRefreshing] = useState(false);
 
   const { isAuthenticated, sendAuthRequest, createSession } = useAuthGuard({
     ShowAuthPopup: setShowAuthPopup,
@@ -55,7 +56,7 @@ export default function Page() {
       }
   
       fetchProjects()
-    }, [])
+    }, [startRefreshing])
 
   return (
     <div className="flex min-h-dvh w-dvw backdrop-blur-xs bg-background/5 text-foreground">
@@ -88,8 +89,23 @@ export default function Page() {
                     onView={(projectUrl) => {
                       window.open(projectUrl, "_blank");
                     }}
-                    onDelete={(projectID) => {
+                    onDelete={ async (projectID) => {
+                      toast.loading("Deleting project...", { id: "delete" });
                       // Handle delete logic here
+                      try {
+                         const response = await api.project.remove({id: projectID}).delete();
+
+                         if (response.error) {
+                           console.log(`Deleting project with ID: ${projectID}` , response);
+                           toast.error(`Failed to delete project. Please try again later msg `, { id: "delete" });
+                         } else {
+                           setStartRefreshing(true);
+                           toast.success("Project deleted successfully.", { id: "delete" });
+                         }
+                      } catch (error) {
+                        console.error("Failed to delete project:", error);
+                        toast.error("Failed to delete project. Please try again later.", { id: "delete" });
+                      }
                     }}
                   />
                 </div>
